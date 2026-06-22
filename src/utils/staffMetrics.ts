@@ -45,7 +45,7 @@ export function computeStaffMetrics(
     : staffList.filter(s => s.name === filters.staffName);
 
   return staffToCompute.map(staff => {
-    const sLeads = rangedLeads.filter(l => (l.createdBy || l.assignedTo) === staff.name);
+    const sLeads = rangedLeads.filter(l => l.createdBy === staff.name || l.assignedTo === staff.name);
     const sLeadIds = new Set(sLeads.map(l => l.id));
     const sDemos = rangedDemos.filter(d =>
       sLeadIds.has(d.leadId || '') || d.createdBy === staff.name

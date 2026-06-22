@@ -711,12 +711,12 @@ export default function Leads() {
                                     
                                     <div className="flex items-center justify-between pt-3 border-t border-[#f4f4f5]">
                                       <div className="flex items-center gap-2">
-                                        {hasPermission('view_all_leads') && lead.createdBy && (
+                                        {hasPermission('view_all_leads') && lead.assignedTo && lead.assignedTo !== lead.createdBy && (
                                           <div 
                                             className="w-5 h-5 rounded-full bg-[#f4f4f5] text-[#18181b] flex items-center justify-center text-[8px] font-black shrink-0 border border-[#e4e4e7]"
-                                            title={`Added by ${lead.createdBy}`}
+                                            title={`Assigned to ${lead.assignedTo} (created by ${lead.createdBy})`}
                                           >
-                                            {lead.createdBy.charAt(0)}
+                                            {lead.assignedTo.charAt(0)}
                                           </div>
                                         )}
                                         <span className="text-[10px] font-bold text-[#a1a1aa] uppercase tracking-widest">{lead.date}</span>
@@ -961,9 +961,9 @@ export default function Leads() {
       >
         {selectedMobileLead && (
           <div className="p-4 space-y-4">
-            {hasPermission('view_all_leads') && selectedMobileLead.createdBy && (
+            {hasPermission('view_all_leads') && selectedMobileLead.assignedTo && selectedMobileLead.assignedTo !== selectedMobileLead.createdBy && (
               <p className="text-xs font-bold text-[#71717a] bg-[#f4f4f5] px-3 py-2 rounded-xl">
-                Assigned to {selectedMobileLead.assignedTo || selectedMobileLead.createdBy}
+                Assigned to {selectedMobileLead.assignedTo} (from {selectedMobileLead.createdBy})
               </p>
             )}
             {canEditLeadStatus(selectedMobileLead) ? (
@@ -1093,10 +1093,14 @@ function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onD
       </div>
       {showOwner && (
         <div className="col-span-1 md:col-span-2 hidden md:flex items-center gap-2 min-w-0">
-          <div className="w-6 h-6 rounded-full bg-[#f4f4f5] text-[#18181b] flex items-center justify-center text-[10px] font-black shrink-0 border border-[#e4e4e7]">
-            {lead.createdBy?.charAt(0) || '?'}
-          </div>
-          <p className="text-xs font-bold text-[#18181b] truncate">{lead.createdBy || 'Unknown'}</p>
+          {lead.assignedTo && lead.assignedTo !== lead.createdBy ? (
+            <>
+              <div className="w-6 h-6 rounded-full bg-[#f4f4f5] text-[#18181b] flex items-center justify-center text-[10px] font-black shrink-0 border border-[#e4e4e7]" title={`Assigned to ${lead.assignedTo} (created by ${lead.createdBy})`}>
+                {lead.assignedTo.charAt(0)}
+              </div>
+              <p className="text-xs font-bold text-[#18181b] truncate">{lead.assignedTo} <span className="text-[10px] text-[#71717a] font-normal">(from {lead.createdBy})</span></p>
+            </>
+          ) : null}
         </div>
       )}
       <div className={`col-span-1 flex justify-end gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity mt-4 md:mt-0 ${showOwner ? 'md:col-span-1' : 'md:col-span-2'}`}>

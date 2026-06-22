@@ -3,6 +3,7 @@ import { Lead, Demo, Reminder, ContactAttempt, AccessLogEntry, LeadTransferReque
 import { MOCK_LEADS, MOCK_DEMOS } from '../constants';
 import { isLeadManagedBy, shouldHandoffLeadOnOffboard } from '../utils/leadAccess';
 import { buildActivity, appendActivity } from '../utils/activityLog';
+import { useAuth } from './AuthContext';
 
 const DATA_STORAGE_KEY = 'edumanage_data';
 
@@ -104,14 +105,13 @@ function loadData(): DataStorage {
       const parsed = JSON.parse(stored) as DataStorage;
       
       const normalizeDate = (d: string) => {
-        if (!d.includes('-')) {
-          const date = new Date(d);
-          if (!isNaN(date.getTime())) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-          }
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+        const date = new Date(d);
+        if (!isNaN(date.getTime())) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
         }
         return d;
       };
@@ -158,6 +158,7 @@ function loadData(): DataStorage {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  const { currentUser } = useAuth();
   const [data, setData] = useState<DataStorage>(loadData);
 
   useEffect(() => {
@@ -271,19 +272,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const addNoteToLead = (leadId: string, note: string) => {
-    setData(prev => withActivity(prev, leadId, 'note_added', `Note added`, undefined, (lead) => ({
+    setData(prev => withActivity(prev, leadId, 'note_added', `Note added`, currentUser?.name || 'System', (lead) => ({
       notes: [...(lead.notes || []), note],
     })));
   };
 
   const updateNoteInLead = (leadId: string, noteIndex: number, newNote: string) => {
-    setData(prev => withActivity(prev, leadId, 'note_updated', `Note #${noteIndex + 1} updated`, undefined, (lead) => ({
+    setData(prev => withActivity(prev, leadId, 'note_updated', `Note #${noteIndex + 1} updated`, currentUser?.name || 'System', (lead) => ({
       notes: (lead.notes || []).map((note, idx) => idx === noteIndex ? newNote : note),
     })));
   };
 
   const deleteNoteFromLead = (leadId: string, noteIndex: number) => {
-    setData(prev => withActivity(prev, leadId, 'note_deleted', `Note #${noteIndex + 1} deleted`, undefined, (lead) => ({
+    setData(prev => withActivity(prev, leadId, 'note_deleted', `Note #${noteIndex + 1} deleted`, currentUser?.name || 'System', (lead) => ({
       notes: (lead.notes || []).filter((_, idx) => idx !== noteIndex),
     })));
   };
@@ -293,7 +294,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       ...attemptData,
       id: generateId()
     };
-    setData(prev => withActivity(prev, leadId, 'contact_attempt', `Contact attempt: ${attemptData.type} — ${attemptData.outcome}`, undefined, (lead) => ({
+    setData(prev => withActivity(prev, leadId, 'contact_attempt', `Contact attempt: ${attemptData.type} — ${attemptData.outcome}`, currentUser?.name || 'System', (lead) => ({
       contactHistory: [newAttempt, ...(lead.contactHistory || [])],
     })));
   };
@@ -440,7 +441,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
           ? {
               ...l,
               assignedTo: transfer.toStaff,
-              createdBy: transfer.toStaff,
               activity: appendActivity(l.activity, buildActivity('transfer_accepted', `Transfer accepted — assigned to ${transfer.toStaff}`, transfer.toStaff)),
             }
           : l
@@ -485,7 +485,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const reassignLead = (leadId: string, newStaff: string) => {
     setData(prev => withActivity(prev, leadId, 'reassigned', `Reassigned to ${newStaff}`, undefined, () => ({
       assignedTo: newStaff,
-      createdBy: newStaff,
     })));
     // Also cancel any pending transfers for this lead
     setData(prev => ({
@@ -531,9 +530,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
         };
       });
 
-      demosLinked = prev.demos.filter(
-        (demo) => demo.leadId && reassignedLeadIds.has(demo.leadId)
-      ).length;
+      const demos = prev.demos.map((demo) => {
+        let updated = false;
+        const patch: Partial<Demo> = {};
+        if (demo.teacher === departingStaff) {
+          patch.teacher = replacementStaff;
+          demosLinked += 1;
+          updated = true;
+        }
+        if (demo.createdBy === departingStaff) {
+          patch.createdBy = replacementStaff;
+          updated = true;
+        }
+        return updated ? { ...demo, ...patch } : demo;
+      });
 
       const leadTransfers = prev.leadTransfers.map((transfer) => {
         if (transfer.status !== 'pending') return transfer;
@@ -544,7 +554,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         return transfer;
       });
 
-      return { ...prev, leads, leadTransfers };
+      return { ...prev, leads, demos, leadTransfers };
     });
 
     return { leadsReassigned, leadsKept, demosLinked, transfersCancelled };
@@ -601,13 +611,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const trimmed = newName.trim();
     if (!trimmed || oldName === trimmed) return false;
     if (data[key].some(s => s.toLowerCase() === trimmed.toLowerCase() && s !== oldName)) return false;
-    setData(prev => ({
-      ...prev,
-      [key]: prev[key].map(s => s === oldName ? trimmed : s),
-      leads: prev.leads.map(l =>
-        l[leadField] === oldName ? { ...l, [leadField]: trimmed } : l
-      ),
-    }));
+    setData(prev => {
+      const demos = prev.demos.map(d => {
+        if (leadField === 'class' && d.class === oldName) {
+          return { ...d, class: trimmed };
+        }
+        if (leadField === 'subject' && d.subject === oldName) {
+          return { ...d, subject: trimmed };
+        }
+        return d;
+      });
+      return {
+        ...prev,
+        [key]: prev[key].map(s => s === oldName ? trimmed : s),
+        leads: prev.leads.map(l =>
+          l[leadField] === oldName ? { ...l, [leadField]: trimmed } : l
+        ),
+        demos
+      };
+    });
     return true;
   };
 
@@ -619,13 +641,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
   ): boolean => {
     if (data[key].length <= 1) return false;
     const fallback = fallbackPreference.find(f => data[key].includes(f)) ?? data[key][0];
-    setData(prev => ({
-      ...prev,
-      [key]: prev[key].filter(s => s !== name),
-      leads: prev.leads.map(l =>
-        l[leadField] === name ? { ...l, [leadField]: fallback } : l
-      ),
-    }));
+    setData(prev => {
+      const demos = prev.demos.map(d => {
+        if (leadField === 'class' && d.class === name) {
+          return { ...d, class: fallback };
+        }
+        if (leadField === 'subject' && d.subject === name) {
+          return { ...d, subject: fallback };
+        }
+        return d;
+      });
+      return {
+        ...prev,
+        [key]: prev[key].filter(s => s !== name),
+        leads: prev.leads.map(l =>
+          l[leadField] === name ? { ...l, [leadField]: fallback } : l
+        ),
+        demos
+      };
+    });
     return true;
   };
 
