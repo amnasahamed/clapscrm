@@ -353,7 +353,7 @@ function MainLayout() {
               <Route path="/admin" element={<ProtectedRoute requireRole="admin"><PageTransition routeKey="admin"><Admin /></PageTransition></ProtectedRoute>} />
               <Route path="/leads" element={<ProtectedRoute><PageTransition routeKey="leads"><Leads /></PageTransition></ProtectedRoute>} />
               <Route path="/demos" element={<ProtectedRoute><PageTransition routeKey="demos"><Demos /></PageTransition></ProtectedRoute>} />
-              <Route path="/analytics" element={<ProtectedRoute requireRole="manager"><PageTransition routeKey="analytics"><Analytics /></PageTransition></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><PageTransition routeKey="analytics"><Analytics /></PageTransition></ProtectedRoute>} />
               <Route path="/enquiry" element={<ProtectedRoute><PageTransition routeKey="enquiry"><EnquiryForm /></PageTransition></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><PageTransition routeKey="settings"><Settings /></PageTransition></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />

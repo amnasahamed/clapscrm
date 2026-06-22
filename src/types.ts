@@ -36,7 +36,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'export_data', 'schedule_demo', 'delete_demo'
   ],
   counselor: [
-    'create_lead', 'schedule_demo', 'change_own_pin', 'transfer_leads'
+    'create_lead', 'schedule_demo', 'change_own_pin', 'transfer_leads', 'view_analytics'
   ]
 };
 

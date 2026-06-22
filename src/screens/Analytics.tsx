@@ -1,24 +1,92 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useStaff } from '../contexts/StaffContext';
 import { motion } from 'motion/react';
+import { Lead } from '../types';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell,
   AreaChart, Area, CartesianGrid
 } from 'recharts';
 
+interface ProgressRingProps {
+  radius: number;
+  stroke: number;
+  progress: number;
+  colorClass: string;
+  label: string;
+  subtitle: string;
+}
+
+function ProgressRing({ radius, stroke, progress, colorClass, label, subtitle }: ProgressRingProps) {
+  const normalizedRadius = radius - stroke * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (Math.min(100, progress) / 100) * circumference;
+
+  return (
+    <div className="flex flex-col items-center p-5 bg-white rounded-2xl border border-[#EDEFEA] shadow-sm flex-1 min-w-[200px]">
+      <div className="relative flex items-center justify-center">
+        <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
+          <circle
+            stroke="#F6F7F4"
+            fill="transparent"
+            strokeWidth={stroke}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          <circle
+            stroke={colorClass}
+            fill="transparent"
+            strokeWidth={stroke}
+            strokeDasharray={circumference + ' ' + circumference}
+            style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.5s ease' }}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+            strokeLinecap="round"
+          />
+        </svg>
+        <div className="absolute text-center">
+          <span className="text-xl font-bold text-[#1F2421]">{progress}%</span>
+        </div>
+      </div>
+      <p className="text-sm font-semibold text-[#1F2421] mt-3">{label}</p>
+      <p className="text-xs text-[#8A8F8A] mt-0.5">{subtitle}</p>
+    </div>
+  );
+}
+
 export default function Analytics() {
   const { leads, demos, leadSources } = useData();
+  const { currentUser } = useAuth();
+  const { staffList } = useStaff();
+
+  const isCounselor = currentUser?.role === 'counselor';
+  const defaultStaff = isCounselor ? currentUser?.name || '' : 'ALL';
+  const [selectedStaff, setSelectedStaff] = useState(defaultStaff);
+
+  const filteredLeads = useMemo(() => {
+    if (selectedStaff === 'ALL') return leads;
+    return leads.filter(l => l.createdBy === selectedStaff || l.assignedTo === selectedStaff);
+  }, [leads, selectedStaff]);
+
+  const filteredDemos = useMemo(() => {
+    if (selectedStaff === 'ALL') return demos;
+    const leadIds = new Set(filteredLeads.map(l => l.id));
+    return demos.filter(d => leadIds.has(d.leadId || '') || d.createdBy === selectedStaff);
+  }, [demos, filteredLeads, selectedStaff]);
 
   const stats = useMemo(() => {
-    const totalLeads = leads.length;
-    const joinedLeads = leads.filter(l => l.status === 'JOINED').length;
-    const totalDemos = demos.length;
-    const completedDemos = demos.filter(d => d.status === 'COMPLETED').length;
+    const totalLeads = filteredLeads.length;
+    const joinedLeads = filteredLeads.filter(l => l.status === 'JOINED');
+    const totalDemos = filteredDemos.length;
+    const completedDemos = filteredDemos.filter(d => d.status === 'COMPLETED').length;
 
-    const conversionRate = totalLeads ? ((joinedLeads / totalLeads) * 100).toFixed(1) : '0';
+    const conversionRate = totalLeads ? ((joinedLeads.length / totalLeads) * 100).toFixed(1) : '0';
 
     const sourceData = leadSources.map(source => {
-      const sourceLeads = leads.filter(l => l.source === source);
+      const sourceLeads = filteredLeads.filter(l => l.source === source);
       const joined = sourceLeads.filter(l => l.status === 'JOINED').length;
       const rate = sourceLeads.length ? ((joined / sourceLeads.length) * 100).toFixed(0) : '0';
       return { source, count: sourceLeads.length, joined, rate: Number(rate) };
@@ -37,13 +105,18 @@ export default function Analytics() {
       d.setDate(d.getDate() - (6 - i));
       const isoDate = d.toISOString().split('T')[0];
       const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const dayLeads = leads.filter(l => normalizeLeadDate(l.date) === isoDate);
+      const dayLeads = filteredLeads.filter(l => normalizeLeadDate(l.date) === isoDate);
       const joins = dayLeads.filter(l => l.status === 'JOINED').length;
       return { date: dateStr, Leads: dayLeads.length, Conversions: joins };
     });
 
-    return { totalLeads, joinedLeads, totalDemos, completedDemos, conversionRate, sourceData, timelineData };
-  }, [leads, demos, leadSources]);
+    const sumJoinCollection = (joined: Lead[]) => {
+      return joined.reduce((sum, l) => sum + (l.amountCollected ?? 800), 0);
+    };
+    const collectionAmount = sumJoinCollection(joinedLeads) + completedDemos * 200;
+
+    return { totalLeads, joinedLeads: joinedLeads.length, totalDemos, completedDemos, conversionRate, sourceData, timelineData, collectionAmount };
+  }, [filteredLeads, filteredDemos, leadSources]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -55,7 +128,7 @@ export default function Analytics() {
     show: { opacity: 1, y: 0, transition: { duration: 0.25 } }
   };
 
-  const colors = ['#18181b', '#3f3f46', '#71717a', '#a1a1aa', '#d4d4d8'];
+  const colors = ['#9BCC1A', '#2A332B', '#3b82f6', '#f4b740', '#e5484d'];
 
   const statItems = [
     { label: 'Total leads', value: stats.totalLeads },
@@ -64,12 +137,56 @@ export default function Analytics() {
     { label: 'Conversion rate', value: `${stats.conversionRate}%` },
   ];
 
+  const JOIN_TARGET = 10;
+  const COLLECTION_TARGET = 10000;
+  const joinsPercentage = Math.min(100, Math.round((stats.joinedLeads / JOIN_TARGET) * 100));
+  const collectionPercentage = Math.min(100, Math.round((stats.collectionAmount / COLLECTION_TARGET) * 100));
+
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-5">
-      <motion.div variants={itemVariants}>
-        <h2 className="text-xl font-semibold text-[#18181b]">Insights</h2>
-        <p className="text-sm text-[#71717a] mt-0.5">Pipeline performance at a glance</p>
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold text-[#18181b]">Insights</h2>
+          <p className="text-sm text-[#71717a] mt-0.5">
+            {selectedStaff === 'ALL' ? 'Organization performance' : `${selectedStaff}'s Performance`}
+          </p>
+        </div>
+        
+        {!isCounselor && (
+          <select
+            value={selectedStaff}
+            onChange={e => setSelectedStaff(e.target.value)}
+            className="bg-[#f4f4f5] rounded-xl px-4 py-2.5 min-h-[44px] text-sm font-semibold outline-none focus:bg-white focus:border-[#18181b] border border-transparent shadow-sm transition-colors cursor-pointer"
+          >
+            <option value="ALL">All Staff</option>
+            {staffList.map(s => (
+              <option key={s.name} value={s.name}>{s.name} ({s.role})</option>
+            ))}
+          </select>
+        )}
       </motion.div>
+
+      {/* Quota target rings (visible for individual counselors) */}
+      {selectedStaff !== 'ALL' && (
+        <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <ProgressRing
+            radius={70}
+            stroke={8}
+            progress={joinsPercentage}
+            colorClass="#9BCC1A"
+            label="Conversions Target"
+            subtitle={`${stats.joinedLeads} / ${JOIN_TARGET} Joined`}
+          />
+          <ProgressRing
+            radius={70}
+            stroke={8}
+            progress={collectionPercentage}
+            colorClass="#2A332B"
+            label="Collection Target"
+            subtitle={`₹${(stats.collectionAmount / 1000).toFixed(1)}k / ₹${(COLLECTION_TARGET / 1000).toFixed(0)}k`}
+          />
+        </motion.div>
+      )}
 
       <motion.div variants={itemVariants} className="surface-panel p-0 overflow-hidden">
         <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-[#e4e4e7]">
@@ -97,8 +214,8 @@ export default function Analytics() {
                     <stop offset="95%" stopColor="#18181b" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorJoins" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#16a34a" stopOpacity={0.12} />
-                    <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#9BCC1A" stopOpacity={0.12} />
+                    <stop offset="95%" stopColor="#9BCC1A" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
@@ -109,7 +226,7 @@ export default function Analytics() {
                   labelStyle={{ fontWeight: '600', color: '#18181b', marginBottom: '6px', fontSize: '13px' }}
                 />
                 <Area type="monotone" dataKey="Leads" stroke="#18181b" strokeWidth={2} fillOpacity={1} fill="url(#colorLeads)" />
-                <Area type="monotone" dataKey="Conversions" stroke="#16a34a" strokeWidth={2} fillOpacity={1} fill="url(#colorJoins)" />
+                <Area type="monotone" dataKey="Conversions" stroke="#9BCC1A" strokeWidth={2} fillOpacity={1} fill="url(#colorJoins)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
