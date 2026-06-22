@@ -1,0 +1,6 @@
+{
+  "name": "ClapsCRM",
+  "description": "A high-performance CRM for managing leads, demos, and sales analytics with a polished corporate interface.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
