@@ -143,7 +143,7 @@ function MainLayout() {
   ).slice(0, 8) : [];
 
   return (
-    <div className="relative min-h-[100dvh] text-[#18181b] font-sans selection:bg-black/10">
+    <div className="relative h-[100dvh] overflow-hidden text-[#18181b] font-sans selection:bg-black/10">
       <DashboardBackground
         mode={dashboardBackground}
         videoId={dashboardVideoId}
@@ -151,7 +151,7 @@ function MainLayout() {
         imageId={dashboardImageId}
       />
 
-      <div className="relative z-10 min-h-[100dvh] flex">
+      <div className="relative z-10 h-[100dvh] flex overflow-hidden">
 
       {/* Desktop sidebar */}
       <aside className="hidden md:flex md:flex-col md:w-[240px] lg:w-[260px] shrink-0 border-r border-[#e4e4e7] bg-white sticky top-0 h-[100dvh] safe-top">
@@ -199,7 +199,7 @@ function MainLayout() {
         </div>
       </aside>
 
-      <div className={`flex-1 flex flex-col min-w-0 ${isMobile && !isFormPage ? 'pb-[calc(64px+env(safe-area-inset-bottom,0px))]' : ''}`}>
+      <div className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden ${isMobile && !isFormPage ? 'pb-[calc(64px+env(safe-area-inset-bottom,0px))]' : ''}`}>
 
         {/* Top bar */}
         <header className="sticky top-0 z-40 bg-white border-b border-[#e4e4e7] flex items-center justify-between px-4 sm:px-6 h-14 sm:h-16 safe-top shrink-0">
@@ -346,7 +346,7 @@ function MainLayout() {
           )}
         </AnimatePresence>
 
-        <main className="flex-1 max-w-[1400px] mx-auto w-full p-4 sm:p-6 lg:p-8 flex flex-col min-h-0">
+        <main className={`flex-1 max-w-[1400px] mx-auto w-full p-4 sm:p-6 lg:p-8 flex flex-col min-h-0 ${location.pathname === '/leads' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           <AnimatePresence mode="wait">
             <Routes location={location}>
               <Route path="/" element={<ProtectedRoute><PageTransition routeKey="home"><Home /></PageTransition></ProtectedRoute>} />
