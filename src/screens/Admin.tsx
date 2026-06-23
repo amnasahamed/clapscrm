@@ -88,7 +88,7 @@ export default function Admin() {
   };
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-6 pb-24 lg:pb-10">
       <div>
         <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#18181b] mb-1">Admin Command</h2>
         <p className="text-sm font-semibold text-[#71717a]">Team, analytics, academic catalog, sources, logs, and staff KPIs.</p>
@@ -150,8 +150,9 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="divide-y divide-[#f4f4f5]">
-              <AnimatePresence>
+            <div className="bg-[#f4f4f5] rounded-3xl p-1 mx-4 mb-4 sm:mx-6 sm:mb-6 mt-2">
+              <div className="bg-white rounded-2xl divide-y divide-[#e4e4e7] overflow-hidden">
+                <AnimatePresence>
                 {staffList.map((staff, idx) => (
                   <motion.div 
                     key={staff.name}
@@ -236,7 +237,8 @@ export default function Admin() {
                     )}
                   </motion.div>
                 ))}
-              </AnimatePresence>
+                </AnimatePresence>
+              </div>
             </div>
           </motion.div>
         </div>

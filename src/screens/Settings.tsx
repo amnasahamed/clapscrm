@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { MessageSquare, Bell, Database, Save, CheckCircle2, AlertCircle, KeyRound, Eye, EyeOff, Palette, Video, Image, Blend, Square } from 'lucide-react';
+import { MessageSquare, Bell, Database, Save, CheckCircle2, AlertCircle, KeyRound, Eye, EyeOff, Palette, Video, Image, Blend, Square, Check } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useStaff } from '../contexts/StaffContext';
@@ -91,7 +91,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-4xl pb-6">
+    <div className="space-y-6 sm:space-y-8 max-w-4xl pb-24 lg:pb-6">
       <div>
         <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#18181b] mb-1">Settings</h2>
         <p className="text-sm font-semibold text-[#71717a]">Manage your personal profile and system preferences.</p>
@@ -255,74 +255,70 @@ export default function Settings() {
                 <p className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] mt-0.5">Dashboard background</p>
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="bg-[#f4f4f5] rounded-2xl border border-[#e4e4e7] overflow-hidden divide-y divide-[#e4e4e7]">
               <button
                 type="button"
                 onClick={() => setDashboardBackground('video')}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
-                  dashboardBackground === 'video'
-                    ? 'bg-[#18181b] text-white border-[#18181b]'
-                    : 'bg-[#fafafa] border-[#f4f4f5] text-[#18181b] hover:border-[#e4e4e7]'
-                }`}
+                className="w-full min-h-[56px] flex items-center justify-between p-4 bg-transparent transition-colors text-left hover:bg-[#e4e4e7] active:bg-[#d4d4d8]"
               >
-                <Video size={18} className="shrink-0" />
-                <div>
-                  <p className="text-sm font-bold">Video</p>
-                  <p className={`text-xs mt-0.5 ${dashboardBackground === 'video' ? 'text-white/70' : 'text-[#71717a]'}`}>
-                    Animated gradient background
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center shrink-0 shadow-sm">
+                    <Video size={16} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#18181b]">Video</p>
+                    <p className="text-[11px] font-semibold text-[#71717a] mt-0.5">Animated gradient background</p>
+                  </div>
                 </div>
+                {dashboardBackground === 'video' && <Check size={20} className="text-violet-600 shrink-0" strokeWidth={3} />}
               </button>
               <button
                 type="button"
                 onClick={() => setDashboardBackground('gradient')}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
-                  dashboardBackground === 'gradient'
-                    ? 'bg-[#18181b] text-white border-[#18181b]'
-                    : 'bg-[#fafafa] border-[#f4f4f5] text-[#18181b] hover:border-[#e4e4e7]'
-                }`}
+                className="w-full min-h-[56px] flex items-center justify-between p-4 bg-transparent transition-colors text-left hover:bg-[#e4e4e7] active:bg-[#d4d4d8]"
               >
-                <Blend size={18} className="shrink-0" />
-                <div>
-                  <p className="text-sm font-bold">Gradient</p>
-                  <p className={`text-xs mt-0.5 ${dashboardBackground === 'gradient' ? 'text-white/70' : 'text-[#71717a]'}`}>
-                    Curated CSS gradients (uiGradients)
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center shrink-0 shadow-sm">
+                    <Blend size={16} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#18181b]">Gradient</p>
+                    <p className="text-[11px] font-semibold text-[#71717a] mt-0.5">Curated CSS gradients</p>
+                  </div>
                 </div>
+                {dashboardBackground === 'gradient' && <Check size={20} className="text-violet-600 shrink-0" strokeWidth={3} />}
               </button>
               <button
                 type="button"
                 onClick={() => setDashboardBackground('image')}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
-                  dashboardBackground === 'image'
-                    ? 'bg-[#18181b] text-white border-[#18181b]'
-                    : 'bg-[#fafafa] border-[#f4f4f5] text-[#18181b] hover:border-[#e4e4e7]'
-                }`}
+                className="w-full min-h-[56px] flex items-center justify-between p-4 bg-transparent transition-colors text-left hover:bg-[#e4e4e7] active:bg-[#d4d4d8]"
               >
-                <Image size={18} className="shrink-0" />
-                <div>
-                  <p className="text-sm font-bold">Image</p>
-                  <p className={`text-xs mt-0.5 ${dashboardBackground === 'image' ? 'text-white/70' : 'text-[#71717a]'}`}>
-                    Curated photos (Unsplash)
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 shadow-sm">
+                    <Image size={16} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#18181b]">Image</p>
+                    <p className="text-[11px] font-semibold text-[#71717a] mt-0.5">Curated photos</p>
+                  </div>
                 </div>
+                {dashboardBackground === 'image' && <Check size={20} className="text-violet-600 shrink-0" strokeWidth={3} />}
               </button>
               <button
                 type="button"
                 onClick={() => setDashboardBackground('static')}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
-                  dashboardBackground === 'static'
-                    ? 'bg-[#18181b] text-white border-[#18181b]'
-                    : 'bg-[#fafafa] border-[#f4f4f5] text-[#18181b] hover:border-[#e4e4e7]'
-                }`}
+                className="w-full min-h-[56px] flex items-center justify-between p-4 bg-transparent transition-colors text-left hover:bg-[#e4e4e7] active:bg-[#d4d4d8]"
               >
-                <Square size={18} className="shrink-0" />
-                <div>
-                  <p className="text-sm font-bold">Classic</p>
-                  <p className={`text-xs mt-0.5 ${dashboardBackground === 'static' ? 'text-white/70' : 'text-[#71717a]'}`}>
-                    Solid light gray background
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-zinc-200 text-zinc-600 flex items-center justify-center shrink-0 shadow-sm">
+                    <Square size={16} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#18181b]">Classic</p>
+                    <p className="text-[11px] font-semibold text-[#71717a] mt-0.5">Solid light gray background</p>
+                  </div>
                 </div>
+                {dashboardBackground === 'static' && <Check size={20} className="text-violet-600 shrink-0" strokeWidth={3} />}
               </button>
             </div>
             {dashboardBackground === 'image' && (
@@ -423,23 +419,23 @@ export default function Settings() {
               </div>
               <h3 className="font-black text-[#18181b]">Notifications</h3>
             </div>
-            <div className="space-y-4">
-              <label className="flex items-center justify-between p-3 bg-[#fafafa] rounded-xl border border-[#f4f4f5] cursor-pointer group">
+            <div className="bg-[#f4f4f5] rounded-2xl border border-[#e4e4e7] overflow-hidden divide-y divide-[#e4e4e7]">
+              <label className="flex items-center justify-between p-4 min-h-[56px] bg-transparent cursor-pointer group hover:bg-[#e4e4e7] transition-colors">
                 <span className="text-sm font-bold text-[#18181b] group-hover:text-indigo-600 transition-colors">Daily Summary</span>
                 <input
                   type="checkbox"
                   checked={notificationPrefs.dailySummary}
                   onChange={(e) => updateNotificationPref('dailySummary', e.target.checked)}
-                  className="w-4 h-4 rounded border-[#e4e4e7] text-indigo-600 focus:ring-indigo-600 focus:ring-offset-0"
+                  className="w-5 h-5 rounded-md border-[#a1a1aa] text-indigo-600 focus:ring-indigo-600 focus:ring-offset-0 transition-colors cursor-pointer shadow-sm"
                 />
               </label>
-              <label className="flex items-center justify-between p-3 bg-[#fafafa] rounded-xl border border-[#f4f4f5] cursor-pointer group">
+              <label className="flex items-center justify-between p-4 min-h-[56px] bg-transparent cursor-pointer group hover:bg-[#e4e4e7] transition-colors">
                 <span className="text-sm font-bold text-[#18181b] group-hover:text-indigo-600 transition-colors">Demo Alerts</span>
                 <input
                   type="checkbox"
                   checked={notificationPrefs.demoAlerts}
                   onChange={(e) => updateNotificationPref('demoAlerts', e.target.checked)}
-                  className="w-4 h-4 rounded border-[#e4e4e7] text-indigo-600 focus:ring-indigo-600 focus:ring-offset-0"
+                  className="w-5 h-5 rounded-md border-[#a1a1aa] text-indigo-600 focus:ring-indigo-600 focus:ring-offset-0 transition-colors cursor-pointer shadow-sm"
                 />
               </label>
             </div>

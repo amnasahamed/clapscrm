@@ -71,7 +71,7 @@ export default function Home() {
       {incomingTransfers.length > 0 && (
         <motion.div variants={itemVariants} className="space-y-2 shrink-0">
           {incomingTransfers.map(transfer => (
-            <div key={transfer.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <div key={transfer.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
               <div>
                 <p className="text-sm font-semibold text-amber-900">
                   {transfer.fromStaff} wants to transfer {transfer.leadName} to you
@@ -81,13 +81,13 @@ export default function Home() {
               <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
                 <button
                   onClick={() => acceptLeadTransfer(transfer.id)}
-                  className="flex-1 sm:flex-none px-4 py-3 min-h-[48px] bg-green-600 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 interactive-element"
+                  className="flex-1 sm:flex-none px-4 py-3 min-h-[44px] bg-green-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 interactive-element shadow-sm"
                 >
                   <Check size={14} /> Accept
                 </button>
                 <button
                   onClick={() => rejectLeadTransfer(transfer.id)}
-                  className="flex-1 sm:flex-none px-4 py-3 min-h-[48px] bg-white border border-amber-300 text-amber-800 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 interactive-element"
+                  className="flex-1 sm:flex-none px-4 py-3 min-h-[44px] bg-white border border-amber-300 text-amber-800 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 interactive-element shadow-sm"
                 >
                   <Ban size={14} /> Decline
                 </button>
@@ -120,29 +120,27 @@ export default function Home() {
 
       {/* Due / overdue reminders */}
       {dueNow.length > 0 && (
-        <motion.div variants={itemVariants} className="shrink-0">
-          <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-            <div className="flex items-center gap-2 mb-2">
-              <AlarmClock size={16} className="text-red-600" />
-              <p className="text-sm font-bold text-red-900">
-                {dueNow.length} follow-up{dueNow.length === 1 ? '' : 's'} due now
-              </p>
-            </div>
-            <div className="space-y-1">
-              {dueNow.slice(0, 4).map(r => (
-                <button
-                  key={r.id}
-                  onClick={() => toggleReminder(r.id)}
-                  className="w-full flex items-center justify-between gap-3 text-left py-1.5"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-red-900 truncate">{r.leadName}</p>
-                    <p className="text-xs text-red-700/80 truncate">{r.text}</p>
-                  </div>
-                  <span className="text-xs font-medium text-red-600 shrink-0 tabular-nums">{r.time}</span>
-                </button>
-              ))}
-            </div>
+        <motion.div variants={itemVariants} className="shrink-0 space-y-2">
+          <div className="flex items-center gap-2 mb-1 px-1">
+            <AlarmClock size={16} className="text-red-600" />
+            <p className="text-sm font-bold text-red-900">
+              {dueNow.length} follow-up{dueNow.length === 1 ? '' : 's'} due now
+            </p>
+          </div>
+          <div className="space-y-2">
+            {dueNow.slice(0, 4).map(r => (
+              <button
+                key={r.id}
+                onClick={() => toggleReminder(r.id)}
+                className="w-full flex items-center justify-between gap-3 text-left p-4 min-h-[48px] bg-red-50 border border-red-200 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] interactive-element active:scale-[0.98] transition-all"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-red-900 tracking-tight truncate">{r.leadName}</p>
+                  <p className="text-[11px] font-semibold text-red-700/80 truncate mt-0.5">{r.text}</p>
+                </div>
+                <span className="text-[11px] font-bold text-red-600 shrink-0 tabular-nums bg-white px-2 py-1 rounded-lg border border-red-100">{r.time}</span>
+              </button>
+            ))}
           </div>
         </motion.div>
       )}
@@ -197,7 +195,7 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto no-scrollbar space-y-0.5 pr-1">
+          <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-1 pb-4">
             {reminders.length === 0 ? (
               <div className="text-center flex flex-col items-center justify-center h-full py-10 text-sm text-[#a1a1aa]">
                 <CheckCircle size={22} className="mb-2 text-[#d4d4d8]" />
@@ -218,29 +216,29 @@ export default function Home() {
                       leftAction={{
                         icon: r.isCompleted ? <Square size={20} /> : <CheckSquare size={20} />,
                         label: r.isCompleted ? 'Undo' : 'Complete',
-                        colorClass: r.isCompleted ? 'bg-[#f4f4f5] text-[#18181b]' : 'bg-green-600 text-white',
+                        colorClass: r.isCompleted ? 'bg-[#f4f4f5] text-[#18181b] rounded-2xl' : 'bg-green-600 text-white rounded-2xl',
                         onAction: () => toggleReminder(r.id)
                       }}
                       rightAction={{
                         icon: <Trash2 size={20} />,
                         label: 'Delete',
-                        colorClass: 'bg-red-500 text-white',
+                        colorClass: 'bg-red-500 text-white rounded-2xl',
                         onAction: () => deleteReminder(r.id)
                       }}
                     >
-                      <div className={`group flex items-start gap-3 py-2.5 px-1 border-b border-[#f4f4f5] last:border-0 transition-colors ${r.isCompleted ? 'opacity-50' : ''}`}>
-                        <button onClick={() => toggleReminder(r.id)} className={`mt-0.5 shrink-0 transition-colors ${r.isCompleted ? 'text-green-600' : 'text-[#a1a1aa] hover:text-[#18181b]'}`}>
-                          {r.isCompleted ? <CheckSquare size={16} /> : <Square size={16} />}
+                      <div className={`group flex items-start p-3 bg-white border border-[#e4e4e7] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all ${r.isCompleted ? 'opacity-50' : ''}`}>
+                        <button onClick={() => toggleReminder(r.id)} className={`p-1 min-w-[44px] min-h-[44px] flex items-center justify-center -ml-1 shrink-0 transition-colors ${r.isCompleted ? 'text-green-600' : 'text-[#a1a1aa] hover:text-[#18181b]'}`}>
+                          {r.isCompleted ? <CheckSquare size={18} /> : <Square size={18} />}
                         </button>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 pt-0.5 pl-1">
                           <div className="flex items-center justify-between gap-2">
-                            <p className={`text-sm font-medium truncate ${r.isCompleted ? 'line-through text-[#a1a1aa]' : 'text-[#18181b]'}`}>{r.leadName}</p>
-                            <p className="text-xs text-[#a1a1aa] shrink-0 tabular-nums">{r.time}</p>
+                            <p className={`text-sm font-bold tracking-tight truncate ${r.isCompleted ? 'line-through text-[#a1a1aa]' : 'text-[#18181b]'}`}>{r.leadName}</p>
+                            <p className="text-[10px] font-bold text-[#a1a1aa] shrink-0 tabular-nums">{r.time}</p>
                           </div>
-                          <p className="text-xs text-[#71717a] line-clamp-1 mt-0.5">{r.text}</p>
+                          <p className="text-xs font-medium text-[#71717a] line-clamp-1 mt-0.5">{r.text}</p>
                         </div>
-                        <button onClick={() => deleteReminder(r.id)} className="p-1 text-[#a1a1aa] hover:text-red-500 transition-colors opacity-60 sm:opacity-0 sm:group-hover:opacity-100">
-                          <X size={14} />
+                        <button onClick={() => deleteReminder(r.id)} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1 text-[#a1a1aa] hover:text-red-500 transition-colors opacity-60 sm:opacity-0 sm:group-hover:opacity-100">
+                          <X size={16} />
                         </button>
                       </div>
                     </SwipeableItem>
@@ -251,7 +249,7 @@ export default function Home() {
           </div>
 
           {reminders.some(r => r.isCompleted) && (
-            <button onClick={() => reminders.filter(r => r.isCompleted).forEach(r => deleteReminder(r.id))} className="mt-3 text-xs font-medium text-[#a1a1aa] hover:text-[#18181b] self-start transition-colors shrink-0">
+            <button onClick={() => reminders.filter(r => r.isCompleted).forEach(r => deleteReminder(r.id))} className="mt-3 py-3 min-h-[44px] px-2 -ml-2 text-xs font-bold text-[#a1a1aa] hover:text-[#18181b] self-start transition-colors shrink-0">
               Clear completed
             </button>
           )}
@@ -266,7 +264,7 @@ export default function Home() {
             <span className="text-xs text-[#71717a]">This month</span>
           </div>
 
-          <div className="flex-1 overflow-y-auto no-scrollbar">
+          <div className="flex-1 overflow-y-auto no-scrollbar pb-4">
             <div className="hidden sm:grid grid-cols-12 gap-2 px-2 py-2 text-xs font-medium text-[#a1a1aa] mb-1 sticky top-0 bg-white z-10 border-b border-[#f4f4f5]">
               <div className="col-span-4">Counselor</div>
               <div className="col-span-2 text-center">Leads</div>
@@ -274,25 +272,27 @@ export default function Home() {
               <div className="col-span-2 text-center">Joins</div>
               <div className="col-span-2 text-right">Collection</div>
             </div>
-            {leaderboard.map((staff, i) => (
-              <div key={staff.name} className={`flex sm:grid sm:grid-cols-12 items-center gap-3 sm:gap-2 py-2.5 px-2 border-b border-[#f4f4f5] last:border-0 transition-colors ${staff.name === currentUser.name ? 'bg-[#fafafa] -mx-2 px-4 rounded-lg' : ''}`}>
-                <div className="col-span-4 flex items-center gap-2.5 min-w-0">
-                  <span className={`w-5 text-center text-xs font-medium shrink-0 tabular-nums ${i < 3 ? 'text-[#18181b]' : 'text-[#a1a1aa]'}`}>{i + 1}</span>
-                  <img src={staff.avatar} className="w-7 h-7 rounded-full border border-[#e4e4e7] object-cover shrink-0" alt="" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#18181b] truncate">{staff.name}</p>
-                    <p className="text-xs text-[#71717a] mt-0.5 sm:hidden">{staff.joins} joins · {staff.demos} demos</p>
+            <div className="bg-[#f4f4f5] sm:bg-transparent rounded-2xl sm:rounded-none border border-[#e4e4e7] sm:border-0 overflow-hidden divide-y divide-[#e4e4e7] sm:divide-y-0 sm:space-y-0">
+              {leaderboard.map((staff, i) => (
+                <div key={staff.name} className={`flex sm:grid sm:grid-cols-12 items-center gap-3 sm:gap-2 py-3 px-3 sm:py-2.5 sm:px-2 bg-white sm:bg-transparent sm:border-b sm:border-[#f4f4f5] sm:last:border-0 transition-colors ${staff.name === currentUser.name ? 'bg-indigo-50/50 sm:bg-[#fafafa] sm:-mx-2 sm:px-4 sm:rounded-lg' : ''}`}>
+                  <div className="col-span-4 flex items-center gap-2.5 min-w-0">
+                    <span className={`w-5 text-center text-[10px] font-bold shrink-0 tabular-nums ${i < 3 ? 'text-[#18181b]' : 'text-[#a1a1aa]'}`}>{i + 1}</span>
+                    <img src={staff.avatar} className="w-8 h-8 rounded-full border border-[#e4e4e7] object-cover shrink-0 shadow-sm" alt="" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold tracking-tight text-[#18181b] truncate">{staff.name}</p>
+                      <p className="text-[11px] font-semibold text-[#71717a] mt-0.5 sm:hidden">{staff.joins} joins · {staff.demos} demos</p>
+                    </div>
+                  </div>
+
+                  <div className="col-span-2 hidden sm:block text-center text-sm tabular-nums text-[#18181b]">{staff.totalLeads}</div>
+                  <div className="col-span-2 hidden sm:block text-center text-sm tabular-nums text-[#18181b]">{staff.demos}</div>
+                  <div className="col-span-2 hidden sm:block text-center text-sm tabular-nums text-green-700">{staff.joins}</div>
+                  <div className="col-span-2 text-right shrink-0">
+                    <p className="text-sm font-bold tabular-nums text-[#18181b]">₹{(staff.collection / 1000).toFixed(1)}k</p>
                   </div>
                 </div>
-
-                <div className="col-span-2 hidden sm:block text-center text-sm tabular-nums text-[#18181b]">{staff.totalLeads}</div>
-                <div className="col-span-2 hidden sm:block text-center text-sm tabular-nums text-[#18181b]">{staff.demos}</div>
-                <div className="col-span-2 hidden sm:block text-center text-sm tabular-nums text-green-700">{staff.joins}</div>
-                <div className="col-span-2 text-right shrink-0">
-                  <p className="text-sm font-semibold tabular-nums text-[#18181b]">₹{(staff.collection / 1000).toFixed(1)}k</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </motion.div>

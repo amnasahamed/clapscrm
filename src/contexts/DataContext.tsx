@@ -45,6 +45,7 @@ interface DataContextType {
   deleteNoteFromLead: (leadId: string, noteIndex: number) => void;
   
   addContactAttemptToLead: (leadId: string, attempt: Omit<ContactAttempt, 'id'>) => void;
+  incrementLeadFollowUp: (leadId: string) => boolean;
   logReEnquiry: (leadId: string, payload: {
     source: string;
     date: string;
@@ -297,6 +298,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setData(prev => withActivity(prev, leadId, 'contact_attempt', `Contact attempt: ${attemptData.type} — ${attemptData.outcome}`, currentUser?.name || 'System', (lead) => ({
       contactHistory: [newAttempt, ...(lead.contactHistory || [])],
     })));
+  };
+
+  const incrementLeadFollowUp = (leadId: string): boolean => {
+    const lead = data.leads.find(l => l.id === leadId);
+    if (!lead) return false;
+    if ((lead.followUpCount || 0) >= 5) return false;
+
+    const currentCount = lead.followUpCount || 0;
+    const newCount = currentCount + 1;
+
+    setData(prev => withActivity(prev, leadId, 'contact_attempt', `Follow-up marked: ${newCount}/5`, currentUser?.name || 'System', (l) => ({
+      followUpCount: newCount
+    })));
+    return true;
   };
 
   const logReEnquiry = (
@@ -711,7 +726,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addLead, updateLead, deleteLead,
       addDemo, updateDemo, deleteDemo,
       addNoteToLead, updateNoteInLead, deleteNoteFromLead,
-      addContactAttemptToLead, logReEnquiry, updateWhatsAppTemplate,
+      addContactAttemptToLead, incrementLeadFollowUp, logReEnquiry, updateWhatsAppTemplate,
       addReminder, toggleReminder, deleteReminder,
       addAccessLog, createLeadTransfer, requestLeadHandoff, acceptLeadTransfer,
       rejectLeadTransfer, cancelLeadTransfer, reassignLead, offboardStaff,

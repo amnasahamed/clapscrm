@@ -111,7 +111,7 @@ export default function AdminAnalyticsSection() {
               <button
                 key={view}
                 onClick={() => setPeriodView(view)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+                className={`px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
                   periodView === view ? 'bg-white text-[#18181b] shadow-sm' : 'text-[#71717a]'
                 }`}
               >

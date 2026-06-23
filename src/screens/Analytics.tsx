@@ -143,7 +143,7 @@ export default function Analytics() {
   const collectionPercentage = Math.min(100, Math.round((stats.collectionAmount / COLLECTION_TARGET) * 100));
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-5">
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-5 pb-24">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold text-[#18181b]">Insights</h2>
@@ -188,15 +188,13 @@ export default function Analytics() {
         </motion.div>
       )}
 
-      <motion.div variants={itemVariants} className="surface-panel p-0 overflow-hidden">
-        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-[#e4e4e7]">
-          {statItems.map((item) => (
-            <div key={item.label} className="px-5 py-4">
-              <p className="text-xl font-semibold tabular-nums text-[#18181b]">{item.value}</p>
-              <p className="text-xs text-[#71717a] mt-1">{item.label}</p>
-            </div>
-          ))}
-        </div>
+      <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {statItems.map((item) => (
+          <div key={item.label} className="bg-white rounded-[24px] p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-[#e4e4e7]">
+            <p className="text-xl font-bold tabular-nums text-[#18181b]">{item.value}</p>
+            <p className="text-xs font-semibold text-[#71717a] mt-1 uppercase tracking-wide">{item.label}</p>
+          </div>
+        ))}
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -259,17 +257,17 @@ export default function Analytics() {
         </motion.div>
 
         <motion.div variants={itemVariants} className="lg:col-span-2 surface-panel p-5 sm:p-6">
-          <h3 className="section-title mb-5">Conversion funnel</h3>
-          <div className="space-y-2 max-w-xl">
+          <h3 className="section-title mb-6">Conversion funnel</h3>
+          <div className="space-y-3 max-w-xl">
             {[
               { label: 'Leads captured', value: stats.totalLeads, width: '100%' },
               { label: 'Demos scheduled', value: stats.totalDemos, width: '82%' },
               { label: 'Students joined', value: stats.joinedLeads, width: '64%' },
             ].map((step) => (
               <div key={step.label} style={{ width: step.width }} className="mx-auto">
-                <div className="flex items-center justify-between py-3 px-4 bg-[#f4f4f5] rounded-lg border border-[#e4e4e7]">
-                  <span className="text-sm font-medium text-[#18181b]">{step.label}</span>
-                  <span className="text-lg font-semibold tabular-nums text-[#18181b]">{step.value}</span>
+                <div className="flex items-center justify-between py-4 px-5 bg-white rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#e4e4e7]">
+                  <span className="text-sm font-bold tracking-tight text-[#18181b]">{step.label}</span>
+                  <span className="text-lg font-black tabular-nums text-[#18181b]">{step.value}</span>
                 </div>
               </div>
             ))}

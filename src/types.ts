@@ -106,6 +106,7 @@ export interface Lead {
   assignedTo?: string;
   isHot?: boolean;
   contactHistory?: ContactAttempt[];
+  followUpCount?: number;
   createdBy?: string;
   /** Amount collected (₹) when the lead becomes JOINED. Falls back to ₹800 if unset. */
   amountCollected?: number;

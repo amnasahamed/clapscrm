@@ -8,6 +8,7 @@ export interface LeadFilters {
   status: string[];
   createdBy: string;
   source: string;
+  followUpCount: 'ALL' | 0 | 1 | 2 | 3 | 4 | 5;
 }
 
 interface FilterLeadsModalProps {
@@ -60,7 +61,8 @@ export default function FilterLeadsModal({
       dateRange: 'ALL',
       status: [],
       createdBy: 'ALL',
-      source: 'ALL'
+      source: 'ALL',
+      followUpCount: 'ALL'
     });
   };
 
@@ -76,7 +78,7 @@ export default function FilterLeadsModal({
                   <h2 className="text-lg font-black tracking-tight text-[#18181b]">Filter Leads</h2>
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 hover:bg-[#e4e4e7] rounded-full transition-colors text-[#71717a]">
+              <button onClick={onClose} className="p-2 min-w-[44px] min-h-[44px] hover:bg-[#e4e4e7] rounded-full transition-colors text-[#71717a]">
                 <X size={20} />
               </button>
             </div>
@@ -92,7 +94,7 @@ export default function FilterLeadsModal({
                     <button
                       key={range}
                       onClick={() => setLocalFilters({ ...localFilters, dateRange: range as any })}
-                      className={`px-4 py-2 text-xs font-bold rounded-xl transition-colors border ${localFilters.dateRange === range ? 'bg-[#18181b] text-white border-[#18181b]' : 'bg-white text-[#71717a] border-[#e4e4e7] hover:border-[#18181b] hover:text-[#18181b]'}`}
+                      className={`px-4 py-2.5 min-h-[44px] text-xs font-bold rounded-xl transition-colors border ${localFilters.dateRange === range ? 'bg-[#18181b] text-white border-[#18181b]' : 'bg-white text-[#71717a] border-[#e4e4e7] hover:border-[#18181b] hover:text-[#18181b]'}`}
                     >
                       {range.replace('_', ' ')}
                     </button>
@@ -110,7 +112,7 @@ export default function FilterLeadsModal({
                     <button
                       key={status}
                       onClick={() => handleStatusToggle(status)}
-                      className={`px-4 py-2 text-xs font-bold rounded-xl transition-colors border ${localFilters.status.includes(status) ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm' : 'bg-white text-[#71717a] border-[#e4e4e7] hover:border-[#18181b] hover:text-[#18181b]'}`}
+                      className={`px-4 py-2.5 min-h-[44px] text-xs font-bold rounded-xl transition-colors border ${localFilters.status.includes(status) ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm' : 'bg-white text-[#71717a] border-[#e4e4e7] hover:border-[#18181b] hover:text-[#18181b]'}`}
                     >
                       {status}
                     </button>
@@ -119,6 +121,24 @@ export default function FilterLeadsModal({
                 {localFilters.status.length === 0 && (
                   <p className="text-[10px] text-[#a1a1aa] font-medium italic mt-1">No specific status selected (showing all)</p>
                 )}
+              </div>
+
+              {/* Follow-up Count */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-black uppercase tracking-widest text-[#a1a1aa] flex items-center gap-2">
+                  <SlidersHorizontal size={14} /> Follow-up Count
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {['ALL', 0, 1, 2, 3, 4, 5].map(count => (
+                    <button
+                      key={count}
+                      onClick={() => setLocalFilters({ ...localFilters, followUpCount: count as any })}
+                      className={`px-4 py-2.5 min-h-[44px] text-xs font-bold rounded-xl transition-colors border ${localFilters.followUpCount === count ? 'bg-[#18181b] text-white border-[#18181b]' : 'bg-white text-[#71717a] border-[#e4e4e7] hover:border-[#18181b] hover:text-[#18181b]'}`}
+                    >
+                      {count === 'ALL' ? 'Any' : `${count} Follow-ups`}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Admin Only: Owner */}
@@ -159,7 +179,7 @@ export default function FilterLeadsModal({
 
             </div>
 
-            <div className="p-6 border-t border-[#e4e4e7] bg-[#fafafa] flex gap-3 shrink-0">
+            <div className="p-6 border-t border-[#e4e4e7] bg-[#fafafa] flex gap-3 shrink-0 safe-bottom">
               <button 
                 onClick={handleReset}
                 className="flex-1 py-3.5 bg-white border border-[#e4e4e7] text-[#18181b] rounded-xl font-bold hover:bg-[#f4f4f5] transition-colors"

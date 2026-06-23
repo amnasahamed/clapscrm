@@ -361,15 +361,15 @@ function MainLayout() {
           </AnimatePresence>
         </main>
 
-        {/* Mobile FAB — leads only */}
-        {isMobile && location.pathname === '/leads' && hasPermission('create_lead') && (
+        {/* Universal FAB — leads only */}
+        {location.pathname === '/leads' && hasPermission('create_lead') && (
           <Link
             to="/enquiry"
-            style={{ bottom: MOBILE_FAB_BOTTOM }}
-            className="fixed right-4 w-14 h-14 bg-[#18181b] text-white rounded-2xl shadow-2xl flex items-center justify-center z-50 interactive-element md:hidden"
+            style={{ bottom: isMobile ? MOBILE_FAB_BOTTOM : '2rem' }}
+            className="fixed right-6 md:right-8 w-14 h-14 bg-[#18181b] text-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:-translate-y-1 transition-all flex items-center justify-center z-[60]"
             aria-label="Add lead"
           >
-            <Plus size={26} />
+            <Plus size={26} strokeWidth={2.5} />
           </Link>
         )}
 

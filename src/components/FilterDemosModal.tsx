@@ -77,7 +77,7 @@ export default function FilterDemosModal({
                   <h2 className="text-lg font-black tracking-tight text-[#18181b]">Filter Demos</h2>
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 hover:bg-[#e4e4e7] rounded-full transition-colors text-[#71717a]">
+              <button onClick={onClose} className="p-2 min-w-[44px] min-h-[44px] hover:bg-[#e4e4e7] rounded-full transition-colors text-[#71717a]">
                 <X size={20} />
               </button>
             </div>
@@ -118,7 +118,7 @@ export default function FilterDemosModal({
                       <button
                         key={status}
                         onClick={() => handleStatusToggle(status)}
-                        className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
+                        className={`px-4 py-2.5 min-h-[44px] rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
                           isSelected 
                             ? 'bg-[#18181b] text-white border-[#18181b]' 
                             : 'bg-white text-[#71717a] border-[#e4e4e7] hover:border-[#a1a1aa]'
@@ -184,7 +184,7 @@ export default function FilterDemosModal({
 
             </div>
 
-            <div className="p-4 border-t border-[#e4e4e7] bg-white flex gap-3 shrink-0">
+            <div className="p-4 border-t border-[#e4e4e7] bg-white flex gap-3 shrink-0 safe-bottom">
               <button 
                 onClick={handleReset} 
                 className="px-6 py-3.5 bg-[#f4f4f5] text-[#18181b] rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#e4e4e7] transition-colors interactive-element"

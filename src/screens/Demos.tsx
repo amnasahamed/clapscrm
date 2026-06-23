@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import {
   Calendar as CalendarIcon, Video, CheckCircle, XCircle, Search, PlayCircle, Plus,
-  List, MoreVertical, ChevronLeft, ChevronRight, Settings, Columns, X, Clock, User, Download
+  List, MoreVertical, ChevronLeft, ChevronRight, Settings, Columns, X, Clock, User, Download, Trash2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
@@ -269,47 +269,61 @@ export default function Demos() {
       <div className="relative shrink-0 z-50">
         <button
           onClick={(e) => { e.stopPropagation(); setOpenMenuId(isMenuOpen ? null : demo.id); }}
-          className="p-2 text-[#a1a1aa] hover:text-[#18181b] hover:bg-[#f4f4f5] rounded-xl transition-colors"
+          className="p-2 min-w-[44px] min-h-[44px] text-[#a1a1aa] hover:text-[#18181b] hover:bg-[#f4f4f5] rounded-xl transition-colors flex items-center justify-center"
           aria-expanded={isMenuOpen}
           aria-haspopup="menu"
         >
-          <MoreVertical size={16} />
+          <MoreVertical size={18} />
         </button>
         <AnimatePresence>
           {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -4 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -4 }}
-              transition={{ duration: 0.15 }}
-              className="absolute right-0 top-full mt-1 w-44 bg-white border border-[#e4e4e7] rounded-xl shadow-2xl z-[100] overflow-hidden py-1"
-              onClick={(e) => e.stopPropagation()}
-              role="menu"
-            >
-              {isPending && (
-                <>
-                  <button onClick={() => handleStatusChange(demo.id, 'COMPLETED')} className="w-full text-left px-3 py-2.5 text-xs font-bold text-green-600 hover:bg-green-50 flex items-center gap-2">
-                    <CheckCircle size={14} /> Mark Complete
-                  </button>
-                  <button onClick={() => handleStatusChange(demo.id, 'CANCELLED')} className="w-full text-left px-3 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
-                    <XCircle size={14} /> Cancel Demo
-                  </button>
-                </>
-              )}
-              {!isPending && (
-                <button onClick={() => handleStatusChange(demo.id, 'RESCHEDULED')} className="w-full text-left px-3 py-2.5 text-xs font-bold text-[#18181b] hover:bg-[#f4f4f5] flex items-center gap-2">
-                  <Video size={14} /> Reschedule
-                </button>
-              )}
-              {hasPermission('delete_demo') && (
-                <>
-                  <div className="h-px bg-[#e4e4e7] my-1 mx-2" />
-                  <button onClick={() => confirmDelete(demo.id)} className="w-full text-left px-3 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
-                    <XCircle size={14} /> Delete
-                  </button>
-                </>
-              )}
-            </motion.div>
+            <>
+              {/* Mobile overlay */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }}
+                className="fixed inset-0 bg-black/40 z-[90] sm:hidden"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.15 }}
+                className="fixed bottom-0 left-0 right-0 p-4 pb-8 bg-[#f4f4f5] rounded-t-[32px] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] z-[100] sm:absolute sm:bottom-auto sm:left-auto sm:right-0 sm:top-full sm:mt-1 sm:w-44 sm:p-1 sm:rounded-xl sm:bg-white sm:border sm:border-[#e4e4e7] sm:shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+                role="menu"
+              >
+                {/* Mobile drag handle */}
+                <div className="w-12 h-1.5 bg-[#d4d4d8] rounded-full mx-auto mb-4 sm:hidden" />
+                <div className="bg-white rounded-2xl overflow-hidden divide-y divide-[#e4e4e7] sm:rounded-none sm:divide-y-0 sm:bg-transparent">
+                  {isPending && (
+                    <>
+                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'COMPLETED'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-green-600 hover:bg-green-50 flex items-center gap-2">
+                        <CheckCircle size={18} className="sm:w-3.5 sm:h-3.5" /> Mark Complete
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'CANCELLED'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
+                        <XCircle size={18} className="sm:w-3.5 sm:h-3.5" /> Cancel Demo
+                      </button>
+                    </>
+                  )}
+                  {!isPending && (
+                    <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'RESCHEDULED'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-[#18181b] hover:bg-[#f4f4f5] flex items-center gap-2">
+                      <Video size={18} className="sm:w-3.5 sm:h-3.5" /> Reschedule
+                    </button>
+                  )}
+                  {hasPermission('delete_demo') && (
+                    <>
+                      <div className="hidden sm:block h-px bg-[#e4e4e7] my-1 mx-2" />
+                      <button onClick={(e) => { e.stopPropagation(); confirmDelete(demo.id); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
+                        <Trash2 size={18} className="sm:w-3.5 sm:h-3.5" /> Delete
+                      </button>
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       </div>
@@ -345,7 +359,7 @@ export default function Demos() {
             onAction: () => handleStatusChange(demo.id, 'CANCELLED')
           } : undefined}
         >
-          <div className={`bg-white border border-[#e4e4e7] transition-all hover:border-[#d4d4d8] hover:shadow-md ${isMenuOpen ? 'z-50 overflow-visible' : ''} ${isCompact ? 'rounded-2xl p-3.5 mb-2.5 shadow-sm' : 'rounded-2xl p-4 mb-3 shadow-sm'}`}>
+          <div className={`bg-white transition-all hover:shadow-md ${isMenuOpen ? 'z-50 overflow-visible relative' : 'relative'} ${isCompact ? 'border border-[#e4e4e7] rounded-2xl p-3.5 mb-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-[#d4d4d8]' : 'p-4 border-b border-[#e4e4e7] hover:bg-[#fafafa]'}`}>
             <div className="flex items-start gap-3 sm:gap-4">
               {/* Time column */}
               <div className="shrink-0 flex flex-col items-center pt-0.5 w-14 sm:w-16">
@@ -368,7 +382,7 @@ export default function Demos() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-0.5">
                     <h3 className="text-sm font-black text-[#18181b] truncate leading-tight">{demo.studentName}</h3>
-                    <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 border rounded-lg shrink-0 ${getStatusColor(demo.status)}`}>
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 border rounded-lg shrink-0 ${getStatusColor(demo.status)}`}>
                       {STATUS_LABELS[demo.status]}
                     </span>
                   </div>
@@ -384,7 +398,7 @@ export default function Demos() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg flex items-center gap-1 hover:bg-blue-100 transition-colors"
+                        className="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-2 min-h-[36px] rounded-lg flex items-center gap-1 hover:bg-blue-100 transition-colors"
                       >
                         <PlayCircle size={10} /> Join
                       </a>
@@ -393,14 +407,8 @@ export default function Demos() {
                 </div>
               </div>
 
-              {!isMobile && renderActionsMenu(demo)}
+              {renderActionsMenu(demo)}
             </div>
-
-            {isMobile && (
-              <div className="flex justify-end mt-2 pt-2 border-t border-[#f4f4f5]">
-                {renderActionsMenu(demo)}
-              </div>
-            )}
           </div>
         </SwipeableItem>
       </motion.div>
@@ -425,15 +433,15 @@ export default function Demos() {
       </div>
 
       {/* Search + filter + view controls */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3 bg-white sm:bg-transparent p-3 sm:p-0 rounded-3xl sm:rounded-none border border-[#e4e4e7] sm:border-0 shadow-[0_2px_8px_rgba(0,0,0,0.04)] sm:shadow-none">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#a1a1aa]" />
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#a1a1aa]" />
           <input
             type="text"
-            placeholder="Search by student, teacher, or subject..."
+            placeholder="Search by student, teacher..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white border border-[#e4e4e7] rounded-2xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all"
+            className="w-full pl-10 pr-4 py-3 min-h-[48px] bg-[#f4f4f5] sm:bg-white border-0 sm:border sm:border-[#e4e4e7] rounded-2xl sm:rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner sm:shadow-sm transition-all"
           />
         </div>
 
@@ -480,7 +488,7 @@ export default function Demos() {
           {activeFilterChips.map(chip => (
             <div key={chip} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#18181b] text-white rounded-xl text-xs font-bold shrink-0">
               <span className="uppercase tracking-wider text-[10px]">{chip}</span>
-              <button onClick={() => removeFilterChip(chip)} className="hover:text-red-400 transition-colors">
+              <button onClick={() => removeFilterChip(chip)} className="hover:text-red-400 transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
                 <X size={12} />
               </button>
             </div>
@@ -507,12 +515,16 @@ export default function Demos() {
             ) : (
               groupedDemos.map(group => (
                 <div key={group.date}>
-                  <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-3 mb-2 px-1">
                     <h3 className="text-sm font-black text-[#18181b]">{group.header}</h3>
-                    <span className="text-[10px] font-bold text-[#a1a1aa] bg-[#f4f4f5] px-2 py-0.5 rounded-full">{group.demos.length}</span>
+                    <span className="text-[10px] font-bold text-[#a1a1aa] bg-[#e4e4e7] px-2 py-0.5 rounded-lg">{group.demos.length}</span>
                     <div className="flex-1 h-px bg-[#e4e4e7]" />
                   </div>
-                  <div>{group.demos.map(demo => renderDemoItem(demo))}</div>
+                  <div className="bg-white rounded-3xl border border-[#e4e4e7] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                    <div className="flex flex-col [&>div:last-child>div>div]:border-b-0">
+                      {group.demos.map(demo => renderDemoItem(demo, 'agenda'))}
+                    </div>
+                  </div>
                 </div>
               ))
             )}
@@ -555,9 +567,9 @@ export default function Demos() {
                   {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                 </h3>
                 <div className="flex items-center gap-1">
-                  <button onClick={prevMonth} className="p-2 hover:bg-[#f4f4f5] rounded-xl transition-colors"><ChevronLeft size={18} /></button>
-                  <button onClick={() => { setCurrentMonth(new Date()); setSelectedDate(new Date()); }} className="px-3 py-1.5 text-xs font-bold hover:bg-[#f4f4f5] rounded-xl transition-colors">Today</button>
-                  <button onClick={nextMonth} className="p-2 hover:bg-[#f4f4f5] rounded-xl transition-colors"><ChevronRight size={18} /></button>
+                  <button onClick={prevMonth} className="p-3 -ml-2 hover:bg-[#f4f4f5] rounded-xl transition-colors"><ChevronLeft size={18} /></button>
+                  <button onClick={() => { setCurrentMonth(new Date()); setSelectedDate(new Date()); }} className="px-3 min-h-[44px] text-xs font-bold hover:bg-[#f4f4f5] rounded-xl transition-colors">Today</button>
+                  <button onClick={nextMonth} className="p-3 -mr-2 hover:bg-[#f4f4f5] rounded-xl transition-colors"><ChevronRight size={18} /></button>
                 </div>
               </div>
               <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-1">
@@ -631,7 +643,7 @@ export default function Demos() {
         <button
           onClick={() => setIsScheduleModalOpen(true)}
           style={{ bottom: MOBILE_FAB_BOTTOM }}
-          className="fixed right-4 w-14 h-14 bg-[#18181b] text-white rounded-2xl flex items-center justify-center shadow-2xl z-50 interactive-element md:hidden"
+          className="fixed right-4 md:right-8 w-14 h-14 bg-[#18181b] text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all z-50 interactive-element md:hidden"
           title="Schedule Demo"
           aria-label="Schedule demo"
         >
@@ -671,7 +683,7 @@ function SummaryChip({ icon, label, value }: { icon: ReactNode; label: string; v
     <div className="flex items-center gap-3 px-4 py-3 rounded-[20px] shrink-0 border snap-start bg-white text-[#18181b] border-[#e4e4e7] shadow-sm">
       {icon}
       <div>
-        <p className="text-[9px] font-black uppercase tracking-widest text-[#71717a] mb-0.5">{label}</p>
+        <p className="text-[10px] font-black uppercase tracking-widest text-[#71717a] mb-0.5">{label}</p>
         <p className="text-sm font-black leading-none">{value}</p>
       </div>
     </div>

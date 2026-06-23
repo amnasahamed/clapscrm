@@ -120,9 +120,9 @@ export default function AdminAccessLogsSection() {
           <p className="p-8 text-center text-sm text-[#71717a] font-medium">No events match your filters.</p>
         ) : (
           <>
-            <div className="md:hidden divide-y divide-[#f4f4f5]">
+            <div className="md:hidden space-y-3 p-4">
               {filteredLogs.map(log => (
-                <div key={log.id} className="p-4 space-y-2">
+                <div key={log.id} className="bg-white rounded-2xl p-4 border shadow-sm space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-[#18181b] truncate">{log.staffName}</p>

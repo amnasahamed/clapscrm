@@ -93,42 +93,44 @@ export default function AdminCatalogList({
         </div>
         {error && <p className="text-xs font-bold text-red-600">{error}</p>}
 
-        <div className="divide-y divide-[#f4f4f5] border border-[#e4e4e7] rounded-2xl overflow-hidden max-h-[320px] overflow-y-auto">
-          {items.map(item => (
-            <div key={item} className="flex items-center justify-between gap-3 p-4 min-h-[64px] hover:bg-[#fafafa] transition-colors">
-              {editingItem === item ? (
-                <div className="flex-1 flex items-center gap-2">
-                  <input
-                    autoFocus
-                    value={editValue}
-                    onChange={e => setEditValue(e.target.value)}
-                    className="flex-1 bg-white border border-[#18181b] rounded-lg px-3 py-2 text-sm font-semibold outline-none"
-                  />
-                  <button onClick={saveEdit} className="p-2 text-green-600 hover:bg-green-50 rounded-lg"><Check size={18} /></button>
-                  <button onClick={() => setEditingItem(null)} className="p-2 text-[#71717a] hover:bg-[#f4f4f5] rounded-lg"><X size={18} /></button>
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <p className="font-bold text-sm text-[#18181b]">{item}</p>
-                    <p className="text-[10px] text-[#71717a] font-medium">{getUsageCount(item)} leads</p>
+        <div className="bg-[#f4f4f5] rounded-3xl p-1">
+          <div className="bg-white rounded-2xl divide-y divide-[#e4e4e7] overflow-hidden max-h-[320px] overflow-y-auto">
+            {items.map(item => (
+              <div key={item} className="flex items-center justify-between gap-3 p-4 min-h-[64px] hover:bg-[#fafafa] transition-colors">
+                {editingItem === item ? (
+                  <div className="flex-1 flex items-center gap-2">
+                    <input
+                      autoFocus
+                      value={editValue}
+                      onChange={e => setEditValue(e.target.value)}
+                      className="flex-1 bg-white border border-[#18181b] rounded-lg px-3 py-2 text-sm font-semibold outline-none"
+                    />
+                    <button onClick={saveEdit} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-green-600 hover:bg-green-50 rounded-lg"><Check size={18} /></button>
+                    <button onClick={() => setEditingItem(null)} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#71717a] hover:bg-[#f4f4f5] rounded-lg"><X size={18} /></button>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => startEdit(item)} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#71717a] hover:bg-[#f4f4f5] rounded-xl interactive-element">
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(item)}
-                      disabled={items.length <= 1}
-                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-red-500 hover:bg-red-50 rounded-xl disabled:opacity-30 interactive-element"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
+                ) : (
+                  <>
+                    <div>
+                      <p className="font-bold text-sm text-[#18181b]">{item}</p>
+                      <p className="text-[10px] text-[#71717a] font-medium">{getUsageCount(item)} leads</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => startEdit(item)} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#71717a] hover:bg-[#f4f4f5] rounded-xl interactive-element">
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(item)}
+                        disabled={items.length <= 1}
+                        className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-red-500 hover:bg-red-50 rounded-xl disabled:opacity-30 interactive-element"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

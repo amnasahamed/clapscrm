@@ -269,8 +269,8 @@ export default function EnquiryForm() {
     }, 400);
   };
 
-  const inputStyles = "w-full bg-[#f4f4f5]/60 border border-transparent rounded-2xl px-4 py-3.5 text-sm font-semibold text-[#18181b] outline-none focus:bg-white focus:ring-2 focus:ring-[#18181b]/10 focus:border-[#18181b]/20 transition-all";
-  const errorStyles = "border-red-500 focus:border-red-500 bg-red-50 focus:ring-red-500/10";
+  const inputStyles = "w-full bg-transparent border-none py-2 text-sm font-semibold text-[#18181b] outline-none placeholder:text-[#a1a1aa] focus:ring-0 transition-all";
+  const errorStyles = "text-red-500 placeholder:text-red-300";
 
   return (
     <div className="max-w-xl mx-auto pb-12 space-y-8">
@@ -327,7 +327,7 @@ export default function EnquiryForm() {
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-6"
           >
-            <div className="surface-panel p-6 sm:p-7 space-y-6">
+            <div className="bg-white rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[#e4e4e7] p-6 sm:p-7 space-y-6">
               <div>
                 <h2 className="text-xl font-semibold text-[#18181b] mb-1">New enquiry</h2>
                 <p className="text-sm text-[#71717a]">
@@ -345,324 +345,341 @@ export default function EnquiryForm() {
 
               <div className="space-y-4">
                 {phoneStepComplete ? (
-                  <div className="flex items-center justify-between gap-3 p-4 bg-[#f4f4f5]/60 rounded-2xl border border-[#e4e4e7]">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-[#18181b] shrink-0 border border-[#e4e4e7]">
-                        <Phone size={18} />
+                  <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
+                    <div className="flex items-center justify-between gap-3 p-3 sm:p-4 bg-white rounded-xl border border-[#e4e4e7] shadow-sm">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 bg-[#f4f4f5] rounded-lg flex items-center justify-center text-[#18181b] shrink-0 border border-[#e4e4e7]">
+                          <Phone size={18} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa]">WhatsApp Number</p>
+                          <p className="text-sm font-bold text-[#18181b] truncate">{formattedPhone}</p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa]">WhatsApp Number</p>
-                        <p className="text-sm font-bold text-[#18181b] truncate">{formattedPhone}</p>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={handleChangeNumber}
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 shrink-0 px-3 py-1.5 bg-indigo-50 rounded-md"
+                      >
+                        Change
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleChangeNumber}
-                      className="text-xs font-bold text-indigo-600 hover:text-indigo-700 shrink-0"
-                    >
-                      Change
-                    </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-label ml-1">Country</label>
-                      <div className="relative flex items-center group">
-                        <div className="absolute left-4 z-10 flex items-center justify-center">
-                          <Globe size={16} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+                  <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
+                    <div className="bg-white rounded-xl border border-[#e4e4e7] divide-y divide-[#e4e4e7] overflow-hidden">
+                      <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Country</label>
+                        <div className="relative flex items-center group">
+                          <div className="absolute left-0 z-10 flex items-center justify-center">
+                            <Globe size={18} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+                          </div>
+                          <select
+                            value={formData.dialCode}
+                            onChange={(e) => handleDialCodeChange(e.target.value)}
+                            className={`${inputStyles} pl-8 appearance-none pr-8 relative z-0`}
+                          >
+                            {COUNTRIES.map(c => (
+                              <option key={c.name} value={c.dialCode}>{c.name} ({c.dialCode})</option>
+                            ))}
+                          </select>
+                          <ChevronDown size={16} className="absolute right-0 text-[#a1a1aa] pointer-events-none z-10" />
                         </div>
-                        <select
-                          value={formData.dialCode}
-                          onChange={(e) => handleDialCodeChange(e.target.value)}
-                          className={`${inputStyles} pl-11 appearance-none pr-10 relative z-0`}
-                        >
-                          {COUNTRIES.map(c => (
-                            <option key={c.name} value={c.dialCode}>{c.name} ({c.dialCode})</option>
-                          ))}
-                        </select>
-                        <ChevronDown size={16} className="absolute right-4 text-[#a1a1aa] pointer-events-none z-10" />
                       </div>
-                    </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-label ml-1">WhatsApp Number <span className="text-red-500">*</span></label>
-                      <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <Phone size={16} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
-                          <span className="text-sm font-bold text-[#18181b] ml-2 mr-1">{formData.dialCode}</span>
+                      <div className={`p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors ${errors.phone ? 'bg-red-50/50' : ''}`}>
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">
+                          WhatsApp Number <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative group flex items-center">
+                          <div className="absolute left-0 flex items-center pointer-events-none">
+                            <Phone size={18} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+                            <span className="text-sm font-bold text-[#18181b] ml-2 mr-1">{formData.dialCode}</span>
+                          </div>
+                          <input
+                            type="tel"
+                            placeholder="98765 43210"
+                            value={formData.phone}
+                            onChange={(e) => {
+                              updatePhone(e.target.value);
+                              if (errors.phone) setErrors({ ...errors, phone: '' });
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handlePhoneContinue();
+                              }
+                            }}
+                            className={`${inputStyles} pl-[76px] ${errors.phone ? errorStyles : ''}`}
+                          />
                         </div>
-                        <input
-                          type="tel"
-                          placeholder="98765 43210"
-                          value={formData.phone}
-                          onChange={(e) => {
-                            updatePhone(e.target.value);
-                            if (errors.phone) setErrors({ ...errors, phone: '' });
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handlePhoneContinue();
-                            }
-                          }}
-                          className={`${inputStyles} pl-[84px] ${errors.phone ? errorStyles : ''}`}
-                        />
+                        {errors.phone && <p className="text-red-500 text-xs font-bold mt-2">{errors.phone}</p>}
                       </div>
-                      {errors.phone && <p className="text-red-500 text-xs font-bold pl-1">{errors.phone}</p>}
                     </div>
                   </div>
                 )}
 
                 {showDetailsForm && (
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-label ml-1">Student name</label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <User size={16} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+                  <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+                    <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
+                      <div className="bg-white rounded-xl border border-[#e4e4e7] divide-y divide-[#e4e4e7] overflow-hidden">
+                        <div className={`p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors ${errors.name ? 'bg-red-50/50' : ''}`}>
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Student name</label>
+                          <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                              <User size={18} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+                            </div>
+                            <input 
+                              type="text" 
+                              placeholder="John Doe (optional)"
+                              value={formData.name}
+                              onChange={(e) => {
+                                setFormData({...formData, name: e.target.value});
+                                if (errors.name) setErrors({...errors, name: ''});
+                              }}
+                              className={`${inputStyles} pl-8 ${errors.name ? errorStyles : ''}`}
+                            />
+                          </div>
+                          {errors.name && <p className="text-red-500 text-xs font-bold mt-2">{errors.name}</p>}
+                        </div>
+
+                        <div className={`p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors ${errors.email ? 'bg-red-50/50' : ''}`}>
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Email Address</label>
+                          <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                              <Mail size={18} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+                            </div>
+                            <input 
+                              type="email" 
+                              placeholder="john@example.com"
+                              value={formData.email}
+                              onChange={(e) => {
+                                setFormData({...formData, email: e.target.value});
+                                if (errors.email) setErrors({...errors, email: ''});
+                              }}
+                              className={`${inputStyles} pl-8 ${errors.email ? errorStyles : ''}`}
+                            />
+                          </div>
+                          {errors.email && <p className="text-red-500 text-xs font-bold mt-2">{errors.email}</p>}
+                        </div>
                       </div>
-                      <input 
-                        type="text" 
-                        placeholder="John Doe (optional)"
-                        value={formData.name}
-                        onChange={(e) => {
-                          setFormData({...formData, name: e.target.value});
-                          if (errors.name) setErrors({...errors, name: ''});
-                        }}
-                        className={`${inputStyles} pl-11 ${errors.name ? errorStyles : ''}`}
-                      />
                     </div>
-                    {errors.name && <p className="text-red-500 text-xs font-bold pl-1">{errors.name}</p>}
-                  </div>
-                  
-                  <div className="space-y-1.5">
-                    <label className="text-label ml-1">Email Address</label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Mail size={16} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+
+                    <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
+                      <div className="bg-white rounded-xl border border-[#e4e4e7] divide-y divide-[#e4e4e7] overflow-hidden">
+                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Grade</label>
+                          <div className="relative">
+                            <select 
+                              value={formData.class}
+                              onChange={(e) => setFormData({...formData, class: e.target.value})}
+                              className={`${inputStyles} appearance-none pr-8`}
+                            >
+                              {grades.map(c => (
+                                <option key={c} value={c}>{c}</option>
+                              ))}
+                            </select>
+                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                          </div>
+                        </div>
+
+                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Subject</label>
+                          <div className="relative">
+                            <select
+                              value={formData.subject}
+                              onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                              className={`${inputStyles} appearance-none pr-8`}
+                            >
+                              {subjects.map(s => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
+                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                          </div>
+                        </div>
+
+                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Syllabus</label>
+                          <div className="relative">
+                            <select 
+                              value={formData.syllabus}
+                              onChange={(e) => setFormData({...formData, syllabus: e.target.value})}
+                              className={`${inputStyles} appearance-none pr-8`}
+                            >
+                              {syllabi.map(s => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
+                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                          </div>
+                        </div>
                       </div>
-                      <input 
-                        type="email" 
-                        placeholder="john@example.com"
-                        value={formData.email}
-                        onChange={(e) => {
-                          setFormData({...formData, email: e.target.value});
-                          if (errors.email) setErrors({...errors, email: ''});
-                        }}
-                        className={`${inputStyles} pl-11 ${errors.email ? errorStyles : ''}`}
-                      />
                     </div>
-                    {errors.email && <p className="text-red-500 text-xs font-bold pl-1">{errors.email}</p>}
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-label ml-1">Grade</label>
-                    <div className="relative">
-                      <select 
-                        value={formData.class}
-                        onChange={(e) => setFormData({...formData, class: e.target.value})}
-                        className={`${inputStyles} appearance-none pr-10`}
-                      >
-                        {grades.map(c => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-label ml-1">Subject</label>
-                    <div className="relative">
-                      <select
-                        value={formData.subject}
-                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                        className={`${inputStyles} appearance-none pr-10`}
-                      >
-                        {subjects.map(s => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-label ml-1">Syllabus</label>
-                    <div className="relative">
-                      <select 
-                        value={formData.syllabus}
-                        onChange={(e) => setFormData({...formData, syllabus: e.target.value})}
-                        className={`${inputStyles} appearance-none pr-10`}
-                      >
-                        {syllabi.map(s => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
-                    </div>
-                  </div>
-                </div>
+                    <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
+                      <div className="bg-white rounded-xl border border-[#e4e4e7] divide-y divide-[#e4e4e7] overflow-hidden">
+                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Date</label>
+                          <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                              <Calendar size={18} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+                            </div>
+                            <input 
+                              type="date" 
+                              value={formData.date}
+                              onChange={(e) => setFormData({...formData, date: e.target.value})}
+                              className={`${inputStyles} pl-8`}
+                            />
+                          </div>
+                        </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-label ml-1">Date</label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Calendar size={16} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Source</label>
+                          <div className="relative">
+                            <select 
+                              value={formData.source}
+                              onChange={(e) => setFormData({...formData, source: e.target.value})}
+                              className={`${inputStyles} appearance-none pr-8`}
+                            >
+                              {leadSources.map(s => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
+                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                          </div>
+                        </div>
                       </div>
-                      <input 
-                        type="date" 
-                        value={formData.date}
-                        onChange={(e) => setFormData({...formData, date: e.target.value})}
-                        className={`${inputStyles} pl-11`}
-                      />
                     </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-label ml-1">Source</label>
-                    <div className="relative">
-                      <select 
-                        value={formData.source}
-                        onChange={(e) => setFormData({...formData, source: e.target.value})}
-                        className={`${inputStyles} appearance-none pr-10`}
+
+                    {duplicateIntent === 'sibling' && (
+                      <button
+                        type="button"
+                        onClick={() => setDuplicateIntent(null)}
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 mt-4"
                       >
-                        {leadSources.map(s => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                        ← Back to options
+                      </button>
+                    )}
+
+                    <div className="bg-green-50 border border-green-200 rounded-[24px] p-4 flex items-center gap-3 shadow-sm mt-4">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <CheckCircle2 size={16} className="text-green-600 shrink-0" />
+                      </div>
+                      <p className="text-green-800 text-sm font-semibold">
+                        {duplicateIntent === 'sibling'
+                          ? 'Adding another child on this number. Fill in their details below.'
+                          : 'Number is verified and unique. Fill in the details below.'}
+                      </p>
                     </div>
-                  </div>
-                </div>
 
-                <div className="pt-2 border-t border-[#f4f4f5] mt-2" />
-
-                {duplicateIntent === 'sibling' && (
-                  <button
-                    type="button"
-                    onClick={() => setDuplicateIntent(null)}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
-                  >
-                    ← Back to options
-                  </button>
-                )}
-
-                <div className="bg-green-50 border border-green-200 rounded-[24px] p-4 flex items-center gap-3 shadow-sm">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle2 size={16} className="text-green-600 shrink-0" />
-                  </div>
-                  <p className="text-green-800 text-sm font-semibold">
-                    {duplicateIntent === 'sibling'
-                      ? 'Adding another child on this number. Fill in their details below.'
-                      : 'Number is verified and unique. Fill in the details below.'}
-                  </p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting || Object.keys(errors).length > 0}
-                  className="w-full h-14 bg-[#18181b] text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2 interactive-element"
-                >
-                  {isSubmitting ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                      className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full"
-                    />
-                  ) : (
-                    <>
-                      <Send size={18} />
-                      Add to Pipeline
-                    </>
-                  )}
-                </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || Object.keys(errors).length > 0}
+                      className="w-full h-14 bg-[#18181b] text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2 interactive-element mt-6"
+                    >
+                      {isSubmitting ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                          className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full"
+                        />
+                      ) : (
+                        <>
+                          <Send size={18} />
+                          Add to Pipeline
+                        </>
+                      )}
+                    </button>
                   </form>
                 )}
 
                 {showReEnquiryForm && (
-                  <div className="space-y-4 pt-2 border-t border-[#f4f4f5]">
+                  <div className="space-y-6 pt-4 border-t border-[#e4e4e7] mt-4">
                     <p className="text-sm text-[#71717a]">
                       Same student returning
                       {duplicateLead?.status === 'LOST' && ' — lead will reopen to In Progress.'}
                       {duplicateLead?.status === 'JOINED' && ' — status stays Joined, note only.'}
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-label ml-1">Grade</label>
-                        <div className="relative">
-                          <select
-                            value={formData.class}
-                            onChange={(e) => setFormData({ ...formData, class: e.target.value })}
-                            className={`${inputStyles} appearance-none pr-10`}
-                          >
-                            {grades.map(c => (
-                              <option key={c} value={c}>{c}</option>
-                            ))}
-                          </select>
-                          <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                    <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
+                      <div className="bg-white rounded-xl border border-[#e4e4e7] divide-y divide-[#e4e4e7] overflow-hidden">
+                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Grade</label>
+                          <div className="relative">
+                            <select
+                              value={formData.class}
+                              onChange={(e) => setFormData({ ...formData, class: e.target.value })}
+                              className={`${inputStyles} appearance-none pr-8`}
+                            >
+                              {grades.map(c => (
+                                <option key={c} value={c}>{c}</option>
+                              ))}
+                            </select>
+                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                          </div>
                         </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-label ml-1">Subject</label>
-                        <div className="relative">
-                          <select
-                            value={formData.subject}
-                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                            className={`${inputStyles} appearance-none pr-10`}
-                          >
-                            {subjects.map(s => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
-                          <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Subject</label>
+                          <div className="relative">
+                            <select
+                              value={formData.subject}
+                              onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                              className={`${inputStyles} appearance-none pr-8`}
+                            >
+                              {subjects.map(s => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
+                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                          </div>
                         </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-label ml-1">Syllabus</label>
-                        <div className="relative">
-                          <select
-                            value={formData.syllabus}
-                            onChange={(e) => setFormData({ ...formData, syllabus: e.target.value })}
-                            className={`${inputStyles} appearance-none pr-10`}
-                          >
-                            {syllabi.map(s => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
-                          <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Syllabus</label>
+                          <div className="relative">
+                            <select
+                              value={formData.syllabus}
+                              onChange={(e) => setFormData({ ...formData, syllabus: e.target.value })}
+                              className={`${inputStyles} appearance-none pr-8`}
+                            >
+                              {syllabi.map(s => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
+                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-label ml-1">Date</label>
-                        <div className="relative group">
-                          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Calendar size={16} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+                    <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
+                      <div className="bg-white rounded-xl border border-[#e4e4e7] divide-y divide-[#e4e4e7] overflow-hidden">
+                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Date</label>
+                          <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                              <Calendar size={18} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+                            </div>
+                            <input
+                              type="date"
+                              value={formData.date}
+                              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                              className={`${inputStyles} pl-8`}
+                            />
                           </div>
-                          <input
-                            type="date"
-                            value={formData.date}
-                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                            className={`${inputStyles} pl-11`}
-                          />
                         </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-label ml-1">Source</label>
-                        <div className="relative">
-                          <select
-                            value={formData.source}
-                            onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                            className={`${inputStyles} appearance-none pr-10`}
-                          >
-                            {leadSources.map(s => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
-                          <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Source</label>
+                          <div className="relative">
+                            <select
+                              value={formData.source}
+                              onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                              className={`${inputStyles} appearance-none pr-8`}
+                            >
+                              {leadSources.map(s => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
+                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+                          </div>
                         </div>
                       </div>
                     </div>

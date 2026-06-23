@@ -120,57 +120,93 @@ export default function AdminStaffPerformanceSection() {
       </div>
 
       {/* Staff rows */}
-      <div className="surface-panel overflow-hidden">
-        <div className="hidden lg:grid grid-cols-12 gap-2 px-6 py-3 bg-[#fafafa] border-b border-[#e4e4e7] text-[10px] font-black uppercase tracking-widest text-[#a1a1aa]">
-          <div className="col-span-3">Staff</div>
-          <div className="col-span-1 text-center">Leads</div>
-          <div className="col-span-1 text-center">Active</div>
-          <div className="col-span-1 text-center">Joins</div>
-          <div className="col-span-1 text-center">Conv %</div>
-          <div className="col-span-1 text-center">Demos</div>
-          <div className="col-span-1 text-center">Done</div>
-          <div className="col-span-1 text-center">Demo %</div>
-          <div className="col-span-2 text-center">Efficiency</div>
+      <>
+        <div className="md:hidden space-y-3">
+          {metrics.length === 0 ? (
+            <p className="p-8 text-center text-sm text-[#71717a]">No data for selected filters.</p>
+          ) : (
+            metrics.map(m => (
+              <div key={m.name} className="bg-white rounded-2xl p-4 border shadow-sm">
+                <div className="mb-3">
+                  <p className="font-bold text-sm text-[#18181b]">{m.name}</p>
+                  <p className="text-[10px] font-bold uppercase text-[#a1a1aa]">{m.role}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <MetricCell label="Leads" value={m.totalLeads} />
+                  <MetricCell label="Active" value={m.activeLeads} />
+                  <MetricCell label="Joins" value={m.joins} />
+                  <MetricCell label="Conversion" value={`${m.conversionRate}%`} />
+                  <MetricCell label="Demos" value={m.demosScheduled} />
+                  <MetricCell label="Completed" value={m.demosCompleted} />
+                  <MetricCell label="Demo Rate" value={`${m.demoCompletionRate}%`} />
+                  <div className="col-span-2 mt-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-bold text-[#71717a] uppercase">Efficiency</span>
+                      <span className={`text-xs font-black px-2 py-0.5 rounded-full ${efficiencyColor(m.efficiencyScore)}`}>{m.efficiencyScore}</span>
+                    </div>
+                    <div className="h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#18181b] rounded-full transition-all" style={{ width: `${m.efficiencyScore}%` }} />
+                    </div>
+                    <p className="text-[10px] text-[#71717a] mt-1 text-center">₹{(m.collection / 1000).toFixed(1)}k collection</p>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
-        {metrics.length === 0 ? (
-          <p className="p-8 text-center text-sm text-[#71717a]">No data for selected filters.</p>
-        ) : (
-          <div className="divide-y divide-[#f4f4f5]">
-            {metrics.map(m => (
-              <div key={m.name} className="p-4 lg:px-6 lg:py-4 hover:bg-[#fafafa] transition-colors">
-                <div className="lg:grid lg:grid-cols-12 lg:gap-2 lg:items-center">
-                  <div className="col-span-3 mb-3 lg:mb-0">
-                    <p className="font-bold text-sm text-[#18181b]">{m.name}</p>
-                    <p className="text-[10px] font-bold uppercase text-[#a1a1aa]">{m.role}</p>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:contents gap-3 text-sm">
-                    <MetricCell label="Leads" value={m.totalLeads} />
-                    <MetricCell label="Active" value={m.activeLeads} />
-                    <MetricCell label="Joins" value={m.joins} />
-                    <MetricCell label="Conversion" value={`${m.conversionRate}%`} />
-                    <MetricCell label="Demos" value={m.demosScheduled} />
-                    <MetricCell label="Completed" value={m.demosCompleted} />
-                    <MetricCell label="Demo Rate" value={`${m.demoCompletionRate}%`} />
-                    <div className="col-span-2 lg:col-span-2 flex items-center justify-center lg:justify-center mt-2 lg:mt-0">
-                      <div className="w-full max-w-[120px]">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] font-bold text-[#71717a] uppercase">Efficiency</span>
-                          <span className={`text-xs font-black px-2 py-0.5 rounded-full ${efficiencyColor(m.efficiencyScore)}`}>{m.efficiencyScore}</span>
+        <div className="hidden md:block surface-panel overflow-hidden">
+          <div className="hidden lg:grid grid-cols-12 gap-2 px-6 py-3 bg-[#fafafa] border-b border-[#e4e4e7] text-[10px] font-black uppercase tracking-widest text-[#a1a1aa]">
+            <div className="col-span-3">Staff</div>
+            <div className="col-span-1 text-center">Leads</div>
+            <div className="col-span-1 text-center">Active</div>
+            <div className="col-span-1 text-center">Joins</div>
+            <div className="col-span-1 text-center">Conv %</div>
+            <div className="col-span-1 text-center">Demos</div>
+            <div className="col-span-1 text-center">Done</div>
+            <div className="col-span-1 text-center">Demo %</div>
+            <div className="col-span-2 text-center">Efficiency</div>
+          </div>
+
+          {metrics.length === 0 ? (
+            <p className="p-8 text-center text-sm text-[#71717a]">No data for selected filters.</p>
+          ) : (
+            <div className="divide-y divide-[#f4f4f5]">
+              {metrics.map(m => (
+                <div key={m.name} className="p-4 lg:px-6 lg:py-4 hover:bg-[#fafafa] transition-colors">
+                  <div className="lg:grid lg:grid-cols-12 lg:gap-2 lg:items-center">
+                    <div className="col-span-3 mb-3 lg:mb-0">
+                      <p className="font-bold text-sm text-[#18181b]">{m.name}</p>
+                      <p className="text-[10px] font-bold uppercase text-[#a1a1aa]">{m.role}</p>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:contents gap-3 text-sm">
+                      <MetricCell label="Leads" value={m.totalLeads} />
+                      <MetricCell label="Active" value={m.activeLeads} />
+                      <MetricCell label="Joins" value={m.joins} />
+                      <MetricCell label="Conversion" value={`${m.conversionRate}%`} />
+                      <MetricCell label="Demos" value={m.demosScheduled} />
+                      <MetricCell label="Completed" value={m.demosCompleted} />
+                      <MetricCell label="Demo Rate" value={`${m.demoCompletionRate}%`} />
+                      <div className="col-span-2 lg:col-span-2 flex items-center justify-center lg:justify-center mt-2 lg:mt-0">
+                        <div className="w-full max-w-[120px]">
+                          <div className="flex items-center justify-between mb-1">
+                             <span className="text-[10px] font-bold text-[#71717a] uppercase">Efficiency</span>
+                             <span className={`text-xs font-black px-2 py-0.5 rounded-full ${efficiencyColor(m.efficiencyScore)}`}>{m.efficiencyScore}</span>
+                          </div>
+                          <div className="h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
+                             <div className="h-full bg-[#18181b] rounded-full transition-all" style={{ width: `${m.efficiencyScore}%` }} />
+                          </div>
+                          <p className="text-[10px] text-[#71717a] mt-1 text-center">₹{(m.collection / 1000).toFixed(1)}k collection</p>
                         </div>
-                        <div className="h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
-                          <div className="h-full bg-[#18181b] rounded-full transition-all" style={{ width: `${m.efficiencyScore}%` }} />
-                        </div>
-                        <p className="text-[10px] text-[#71717a] mt-1 text-center">₹{(m.collection / 1000).toFixed(1)}k collection</p>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </>
     </div>
   );
 }

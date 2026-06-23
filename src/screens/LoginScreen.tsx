@@ -70,7 +70,7 @@ export default function LoginScreen() {
           <p className="text-sm text-white/60 mt-1">Sign in with your profile</p>
         </div>
 
-        <div className="overflow-hidden flex-1 min-h-0 flex flex-col rounded-2xl border border-white/10 bg-white/95 backdrop-blur-xl shadow-2xl shadow-black/40">
+        <div className="overflow-hidden flex-1 min-h-0 flex flex-col rounded-[32px] border border-white/20 bg-white/95 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
           <AnimatePresence mode="wait">
             {!selectedStaff ? (
               <motion.div
@@ -90,15 +90,15 @@ export default function LoginScreen() {
                     onClick={() => handleStaffSelect(staff)}
                     className="w-full flex items-center justify-between p-4 min-h-[68px] hover:bg-[#fafafa] active:bg-[#f4f4f5] transition-colors group text-left interactive-element"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-3.5 min-w-0">
                       <img
                         src={staff.avatar}
                         alt={staff.name}
-                        className="w-10 h-10 rounded-full border border-[#e4e4e7] object-cover shrink-0"
+                        className="w-10 h-10 rounded-full border border-[#e4e4e7] object-cover shrink-0 shadow-sm"
                       />
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#18181b] truncate">{staff.name}</p>
-                        <p className="text-xs text-[#71717a] mt-0.5 capitalize">{staff.role}</p>
+                        <p className="text-sm font-bold tracking-tight text-[#18181b] truncate">{staff.name}</p>
+                        <p className="text-[11px] font-bold tracking-wide text-[#71717a] mt-0.5 capitalize">{staff.role}</p>
                       </div>
                     </div>
                     <ChevronRight size={18} className="text-[#d4d4d8] group-hover:text-[#71717a] transition-colors shrink-0" />
@@ -124,15 +124,15 @@ export default function LoginScreen() {
                   <ArrowRight size={18} className="rotate-180" />
                 </button>
 
-                <div className="flex flex-col items-center pt-6 pb-5">
+                <div className="flex flex-col items-center pt-8 pb-6">
                   <motion.img
                     layoutId={`avatar-${selectedStaff.name}`}
                     src={selectedStaff.avatar}
                     alt={selectedStaff.name}
-                    className="w-16 h-16 rounded-full border border-[#e4e4e7] mb-3"
+                    className="w-16 h-16 rounded-full border border-[#e4e4e7] shadow-sm mb-3.5"
                   />
-                  <h3 className="text-base font-semibold text-[#18181b]">{selectedStaff.name}</h3>
-                  <p className="text-sm text-[#71717a] mt-0.5">Enter your 4-digit PIN</p>
+                  <h3 className="text-base font-bold tracking-tight text-[#18181b]">{selectedStaff.name}</h3>
+                  <p className="text-xs font-semibold tracking-wide text-[#71717a] mt-0.5 uppercase">Enter your 4-digit PIN</p>
                 </div>
 
                 <div className="space-y-4">
@@ -161,7 +161,7 @@ export default function LoginScreen() {
                   <button
                     type="submit"
                     disabled={pin.length < 4 || isAuthenticating}
-                    className="w-full bg-[#18181b] text-white py-3.5 min-h-[48px] rounded-xl text-sm font-medium hover:bg-[#27272a] disabled:opacity-50 transition-colors flex items-center justify-center gap-2 interactive-element"
+                    className="w-full bg-[#18181b] text-white py-3.5 min-h-[48px] rounded-2xl text-sm font-bold hover:bg-[#27272a] disabled:opacity-50 transition-colors flex items-center justify-center gap-2 interactive-element shadow-sm"
                   >
                     {isAuthenticating ? (
                       <motion.div
