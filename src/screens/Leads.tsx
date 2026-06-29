@@ -187,7 +187,8 @@ export default function Leads() {
 
   // Mobile specific state
   const isMobile = useIsMobile();
-  const [activeMobileTab, setActiveMobileTab] = useState<typeof COLUMNS[number]>('NEW');
+  const [activeMobileTab, setActiveMobileTab] = useState<'LEADS' | 'LOST'>('LEADS');
+  const [statusFilter, setStatusFilter] = useState<LeadStatus | null>(null);
   const [selectedMobileLead, setSelectedMobileLead] = useState<Lead | null>(null);
   const [highlightLeadId, setHighlightLeadId] = useState<string | null>(null);
   const highlightTimeoutRef = useRef<number | null>(null);
@@ -452,7 +453,11 @@ export default function Leads() {
   };
 
   const MobilePipeline = () => {
-    const mobileLeads = filteredLeads.filter(l => l.status === activeMobileTab);
+    const mobileLeads = filteredLeads.filter(l => {
+      if (statusFilter) return l.status === statusFilter;
+      if (activeMobileTab === 'LEADS') return l.status !== 'LOST';
+      return l.status === 'LOST';
+    });
     const visibleMobileLeads = mobileLeads.slice(0, visibleListCount);
     
     return (
@@ -463,12 +468,25 @@ export default function Leads() {
             {COLUMNS.map(col => {
               const count = filteredLeads.filter(l => l.status === col).length;
               const shortName = col === 'NEW' ? 'New' : col === 'IN PROGRESS' ? 'Prog' : col === 'JOINED' ? 'Join' : 'Lost';
+              const isActiveFilter = statusFilter === col;
               return (
-                <div key={col} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-bold whitespace-nowrap bg-white ${STATUS_COLORS[col].split(' ').filter(c => c.startsWith('border-') || c.startsWith('text-')).join(' ')} shadow-sm`}>
+                <button 
+                  key={col} 
+                  onClick={() => {
+                    setStatusFilter(isActiveFilter ? null : col);
+                    if (!isActiveFilter) setActiveMobileTab(col === 'LOST' ? 'LOST' : 'LEADS');
+                    setVisibleListCount(50);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-bold whitespace-nowrap shadow-sm transition-colors ${
+                    isActiveFilter 
+                      ? 'bg-[#18181b] text-white border-[#18181b]' 
+                      : `bg-white ${STATUS_COLORS[col].split(' ').filter(c => c.startsWith('border-') || c.startsWith('text-')).join(' ')} hover:bg-[#f4f4f5]`
+                  }`}
+                >
                   <span>{STATUS_EMOJIS[col]}</span>
                   <span>{shortName}</span>
-                  <span className="opacity-70 ml-0.5">{count}</span>
-                </div>
+                  <span className={`ml-0.5 ${isActiveFilter ? 'opacity-90' : 'opacity-70'}`}>{count}</span>
+                </button>
               );
             })}
           </div>
@@ -477,21 +495,26 @@ export default function Leads() {
         {/* Filter Buttons */}
         <div className="shrink-0 bg-white px-4 pb-3 border-b border-[#f4f4f5] overflow-x-auto no-scrollbar scroll-fade-x">
           <div className="flex gap-2">
-            {COLUMNS.map(col => {
-              const count = filteredLeads.filter(l => l.status === col).length;
-              const isActive = activeMobileTab === col;
-              const shortName = col === 'NEW' ? 'New' : col === 'IN PROGRESS' ? 'Progress' : col === 'JOINED' ? 'Joined' : 'Lost';
+            {[
+              { id: 'LEADS', label: 'Leads', count: filteredLeads.filter(l => l.status !== 'LOST').length },
+              { id: 'LOST', label: 'Lost', count: filteredLeads.filter(l => l.status === 'LOST').length }
+            ].map(tab => {
+              const isActive = activeMobileTab === tab.id;
               return (
                 <button
-                  key={col}
-                  onClick={() => { setActiveMobileTab(col); setVisibleListCount(50); }}
+                  key={tab.id}
+                  onClick={() => { 
+                    setActiveMobileTab(tab.id as 'LEADS' | 'LOST'); 
+                    setStatusFilter(null); 
+                    setVisibleListCount(50); 
+                  }}
                   className={`px-4 py-2 min-h-[40px] text-xs font-bold rounded-full transition-all border whitespace-nowrap ${
                     isActive
                       ? 'bg-[#18181b] text-white border-[#18181b] shadow-sm'
                       : 'bg-white text-[#71717a] border-[#e4e4e7] active:bg-[#f4f4f5]'
                   }`}
                 >
-                  {shortName} <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-white/20' : 'bg-[#f4f4f5]'}`}>{count}</span>
+                  {tab.label} <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-white/20' : 'bg-[#f4f4f5]'}`}>{tab.count}</span>
                 </button>
               );
             })}
@@ -505,13 +528,16 @@ export default function Leads() {
         >
           <div className="flex items-center justify-between py-3 mb-1">
             <h2 className="text-sm font-black text-[#18181b]">
-              {filteredLeads.length} {filteredLeads.length === 1 ? 'Lead' : 'Leads'}
+              {statusFilter ? `${statusFilter} Leads` : activeMobileTab === 'LEADS' ? 'All Active Leads' : 'Lost Leads'}
             </h2>
+            <span className="text-xs font-bold text-[#71717a]">
+              {mobileLeads.length} {mobileLeads.length === 1 ? 'Lead' : 'Leads'}
+            </span>
           </div>
 
           {mobileLeads.length === 0 ? (
             <div className="py-12 text-center text-[#a1a1aa]">
-              <p className="font-bold">No leads in {activeMobileTab}</p>
+              <p className="font-bold">No leads found in {statusFilter || activeMobileTab}</p>
             </div>
           ) : (
             visibleMobileLeads.map((lead) => (
