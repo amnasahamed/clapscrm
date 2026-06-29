@@ -16,7 +16,7 @@ interface ScheduleDemoModalProps {
 }
 
 export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoScheduled }: ScheduleDemoModalProps) {
-  const { addDemo, updateLead, leads } = useData();
+  const { addDemo, updateLead, leads, grades, subjects } = useData();
   const { currentUser, hasPermission } = useAuth();
   
   const [selectedLeadId, setSelectedLeadId] = useState<string>('');
@@ -106,6 +106,7 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
     if (activeLead.status === 'NEW') leadUpdates.status = 'IN PROGRESS';
     if (editableName.trim() !== activeLead.name) leadUpdates.name = editableName.trim();
     if (editableClass.trim() !== activeLead.class) leadUpdates.class = editableClass.trim();
+    if ((editableSubject.trim() || 'General') !== activeLead.subject) leadUpdates.subject = editableSubject.trim() || 'General';
     
     if (Object.keys(leadUpdates).length > 0) {
       updateLead(activeLead.id, leadUpdates);
@@ -227,27 +228,33 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
                       Class/Grade <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                         <GraduationCap size={16} className="text-[#a1a1aa]" />
                       </div>
-                      <input 
-                        type="text" 
+                      <select 
                         value={editableClass}
                         onChange={e => setEditableClass(e.target.value)}
-                        placeholder="e.g. Class 10" 
-                        className="w-full pl-10 pr-4 py-3 bg-white border border-[#e4e4e7] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all" 
-                      />
+                        className="w-full pl-10 pr-8 py-3 bg-white border border-[#e4e4e7] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all appearance-none" 
+                      >
+                        <option value="">Select Grade</option>
+                        {grades.map(g => (
+                          <option key={g} value={g}>{g}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   <div className="flex-1 space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Subject</label>
-                    <input 
-                      type="text" 
+                    <select 
                       value={editableSubject}
                       onChange={e => setEditableSubject(e.target.value)}
-                      placeholder="e.g. Mathematics"
-                      className="w-full px-4 py-3 bg-white border border-[#e4e4e7] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all" 
-                    />
+                      className="w-full px-4 py-3 bg-white border border-[#e4e4e7] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all appearance-none pr-8" 
+                    >
+                      <option value="">Select Subject</option>
+                      {subjects.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
