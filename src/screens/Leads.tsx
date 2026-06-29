@@ -54,7 +54,19 @@ export const STATUS_EMOJIS: Record<LeadStatus, string> = {
 
 const GCC_COUNTRIES = ['AE', 'SA', 'QA', 'KW', 'BH', 'OM'];
 
-function FollowUpTracker({ followUpCount, isPostDemo, onIncrement }: { followUpCount: number; isPostDemo?: boolean; onIncrement: () => void }) {
+function FollowUpTracker({ 
+  followUpCount, 
+  isPostDemo, 
+  onIncrement,
+  interestStatus,
+  onInterestChange
+}: { 
+  followUpCount: number; 
+  isPostDemo?: boolean; 
+  onIncrement: () => void;
+  interestStatus?: string;
+  onInterestChange?: (status: string) => void;
+}) {
   const count = followUpCount || 0;
   const phaseName = isPostDemo ? 'Post-Demo Follow-ups' : 'Pre-Demo Follow-ups';
   return (
@@ -83,6 +95,27 @@ function FollowUpTracker({ followUpCount, isPostDemo, onIncrement }: { followUpC
             </button>
           );
         })}
+      </div>
+      <div className="flex justify-between items-center mt-2 px-1 gap-2">
+        <div className="flex flex-col">
+          <span className="text-[10px] font-bold text-[#71717a] uppercase tracking-wider">{phaseName}</span>
+          <span className="text-[11px] font-black text-[#18181b]">{count} / 5</span>
+        </div>
+        {onInterestChange && (
+          <select 
+            value={interestStatus || ''}
+            onChange={(e) => onInterestChange(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            className="text-[10px] font-bold bg-white border border-[#e4e4e7] rounded-md px-1.5 py-1 text-[#18181b] outline-none focus:ring-2 focus:ring-blue-500/20"
+          >
+            <option value="" disabled>Interest...</option>
+            <option value="Interested">Interested</option>
+            <option value="Not Interested">Not Interested</option>
+            <option value="No Reply">No Reply</option>
+            <option value="Dead End">Dead End</option>
+            <option value="Re-follow">Re-follow</option>
+          </select>
+        )}
       </div>
     </div>
   );
@@ -582,8 +615,10 @@ export default function Leads() {
                         {lead.isHot && <Star size={14} className="text-amber-500 shrink-0" fill="currentColor" />}
                         {lead.interestStatus && (
                           <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 ${
-                            lead.interestStatus === 'HOT' ? 'bg-amber-100 text-amber-700' :
-                            lead.interestStatus === 'WARM' ? 'bg-blue-100 text-blue-700' :
+                            lead.interestStatus === 'Interested' ? 'bg-green-100 text-green-700' :
+                            lead.interestStatus === 'Re-follow' ? 'bg-blue-100 text-blue-700' :
+                            lead.interestStatus === 'Not Interested' ? 'bg-red-100 text-red-700' :
+                            lead.interestStatus === 'Dead End' ? 'bg-zinc-800 text-zinc-100' :
                             'bg-slate-200 text-slate-700'
                           }`}>
                             {lead.interestStatus}
@@ -839,8 +874,10 @@ export default function Leads() {
                                         {lead.isHot && <span className="bg-amber-100 text-amber-600 text-[8px] font-black uppercase px-2 py-0.5 rounded-full ring-1 ring-amber-200 shrink-0">Hot</span>}
                                         {lead.interestStatus && (
                                           <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 ${
-                                            lead.interestStatus === 'HOT' ? 'bg-amber-100 text-amber-700' :
-                                            lead.interestStatus === 'WARM' ? 'bg-blue-100 text-blue-700' :
+                                            lead.interestStatus === 'Interested' ? 'bg-green-100 text-green-700' :
+                                            lead.interestStatus === 'Re-follow' ? 'bg-blue-100 text-blue-700' :
+                                            lead.interestStatus === 'Not Interested' ? 'bg-red-100 text-red-700' :
+                                            lead.interestStatus === 'Dead End' ? 'bg-zinc-800 text-zinc-100' :
                                             'bg-slate-200 text-slate-700'
                                           }`}>
                                             {lead.interestStatus}
@@ -863,7 +900,9 @@ export default function Leads() {
                                         <FollowUpTracker 
                                           followUpCount={lead.followUpCount} 
                                           isPostDemo={lead.isPostDemo}
-                                          onIncrement={() => incrementLeadFollowUp(lead.id)} 
+                                          onIncrement={() => incrementLeadFollowUp(lead.id)}
+                                          interestStatus={lead.interestStatus}
+                                          onInterestChange={(status) => handleSaveLead(lead.id, { interestStatus: status as any })}
                                         />
                                       )}
                                     </div>
@@ -974,6 +1013,7 @@ export default function Leads() {
                   onQuickEdit={() => setQuickEditingLead(lead)}
                   canEdit={canEditLead(lead)}
                   onIncrementFollowUp={() => incrementLeadFollowUp(lead.id)}
+                  onInterestChange={(status: string) => handleSaveLead(lead.id, { interestStatus: status as any })}
                 />
               ))}
 
@@ -1197,7 +1237,12 @@ export default function Leads() {
                       onIncrement={() => {
                         incrementLeadFollowUp(selectedMobileLead.id);
                         setSelectedMobileLead({ ...selectedMobileLead, followUpCount: (selectedMobileLead.followUpCount || 0) + 1 });
-                      }} 
+                      }}
+                      interestStatus={selectedMobileLead.interestStatus}
+                      onInterestChange={(status) => {
+                        handleSaveLead(selectedMobileLead.id, { interestStatus: status as any });
+                        setSelectedMobileLead({ ...selectedMobileLead, interestStatus: status as any });
+                      }}
                     />
                   </div>
                 )}
@@ -1217,7 +1262,12 @@ export default function Leads() {
                       onIncrement={() => {
                         incrementLeadFollowUp(selectedMobileLead.id);
                         setSelectedMobileLead({ ...selectedMobileLead, followUpCount: (selectedMobileLead.followUpCount || 0) + 1 });
-                      }} 
+                      }}
+                      interestStatus={selectedMobileLead.interestStatus}
+                      onInterestChange={(status) => {
+                        handleSaveLead(selectedMobileLead.id, { interestStatus: status as any });
+                        setSelectedMobileLead({ ...selectedMobileLead, interestStatus: status as any });
+                      }}
                     />
                   </div>
                 )}
@@ -1292,7 +1342,7 @@ function SortButton({ field, label, currentSort, order, onClick }: any) {
   );
 }
 
-function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onDelete, onUpdateStatus, onToggleHot, canDelete, canEditStatus, canEdit, onWhatsApp, onScheduleDemo, showOwner, canTransfer, canReassign, onTransfer, onReassign, onEdit, onQuickEdit, onIncrementFollowUp }: any) {
+function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onDelete, onUpdateStatus, onToggleHot, canDelete, canEditStatus, canEdit, onWhatsApp, onScheduleDemo, showOwner, canTransfer, canReassign, onTransfer, onReassign, onEdit, onQuickEdit, onIncrementFollowUp, onInterestChange }: any) {
   return (
     <div id={id} className={`bg-white border rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center group cursor-pointer transition-colors premium-hover ${isSelected ? 'border-[#18181b] bg-[#fafafa]' : 'border-[#e4e4e7]'} ${isHighlighted ? 'ring-2 ring-[#18181b]/30 bg-amber-50/40' : ''}`}>
       <div className="hidden md:flex col-span-1 items-center">
@@ -1319,9 +1369,11 @@ function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onD
             <span className="text-sm">{getCountryFlag(lead.country)}</span>
             {lead.isHot && <span className="bg-amber-100 text-amber-600 text-[8px] font-black uppercase px-2 py-0.5 rounded-full ring-1 ring-amber-200 shrink-0">Hot</span>}
             {lead.interestStatus && (
-              <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 ${
-                lead.interestStatus === 'HOT' ? 'bg-amber-100 text-amber-700' :
-                lead.interestStatus === 'WARM' ? 'bg-blue-100 text-blue-700' :
+              <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                lead.interestStatus === 'Interested' ? 'bg-green-100 text-green-700' :
+                lead.interestStatus === 'Re-follow' ? 'bg-blue-100 text-blue-700' :
+                lead.interestStatus === 'Not Interested' ? 'bg-red-100 text-red-700' :
+                lead.interestStatus === 'Dead End' ? 'bg-zinc-800 text-zinc-100' :
                 'bg-slate-200 text-slate-700'
               }`}>
                 {lead.interestStatus}
@@ -1348,7 +1400,9 @@ function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onD
           <FollowUpTracker 
             followUpCount={lead.followUpCount} 
             isPostDemo={lead.isPostDemo}
-            onIncrement={onIncrementFollowUp} 
+            onIncrement={onIncrementFollowUp}
+            interestStatus={lead.interestStatus}
+            onInterestChange={onInterestChange}
           />
         )}
       </div>

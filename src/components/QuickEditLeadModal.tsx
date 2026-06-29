@@ -28,9 +28,8 @@ export default function QuickEditLeadModal({ isOpen, lead, onClose, onSave }: Qu
   const handleSave = () => {
     const updates: Partial<Lead> = { status };
     if (interestStatus) updates.interestStatus = interestStatus as InterestStatus;
-    // Also auto-toggle `isHot` if they select HOT? 
-    if (interestStatus === 'HOT') updates.isHot = true;
-    else if (interestStatus === 'COLD') updates.isHot = false;
+    if (interestStatus === 'Interested') updates.isHot = true;
+    else if (interestStatus === 'Not Interested' || interestStatus === 'Dead End') updates.isHot = false;
 
     onSave(lead.id, updates, note.trim() || undefined);
     onClose();
@@ -50,9 +49,9 @@ export default function QuickEditLeadModal({ isOpen, lead, onClose, onSave }: Qu
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-[#e4e4e7] overflow-hidden"
+          className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-[#e4e4e7] overflow-hidden flex flex-col max-h-[90vh]"
         >
-          <div className="p-4 border-b border-[#f4f4f5] flex items-center justify-between bg-[#fafafa]">
+          <div className="p-4 border-b border-[#f4f4f5] flex items-center justify-between bg-[#fafafa] shrink-0">
             <div>
               <h2 className="text-lg font-bold text-[#18181b]">Quick Edit</h2>
               <p className="text-xs text-[#71717a]">{lead.name} • {lead.phone}</p>
@@ -62,18 +61,18 @@ export default function QuickEditLeadModal({ isOpen, lead, onClose, onSave }: Qu
             </button>
           </div>
 
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-5 overflow-y-auto min-h-0">
             <div>
               <label className="text-xs font-bold uppercase tracking-widest text-[#a1a1aa] block mb-2">Interest Status</label>
-              <div className="flex bg-[#f4f4f5] p-1 rounded-xl">
-                {['HOT', 'WARM', 'COLD'].map((opt) => (
+              <div className="flex flex-wrap gap-2">
+                {(['Interested', 'Not Interested', 'No Reply', 'Dead End', 'Re-follow'] as const).map((opt) => (
                   <button
                     key={opt}
-                    onClick={() => setInterestStatus(opt as InterestStatus)}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
+                    onClick={() => setInterestStatus(opt)}
+                    className={`px-3 py-2 text-[11px] font-bold rounded-xl transition-all border ${
                       interestStatus === opt
-                        ? opt === 'HOT' ? 'bg-amber-100 text-amber-700' : opt === 'WARM' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-700'
-                        : 'text-[#a1a1aa] hover:bg-[#e4e4e7]'
+                        ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm'
+                        : 'bg-[#f4f4f5] text-[#71717a] border-transparent hover:bg-[#e4e4e7]'
                     }`}
                   >
                     {opt}
