@@ -54,11 +54,14 @@ export interface StaffMember {
 }
 
 // ─── Data Models ─────────────────────────────────────────────────────
+export type InterestStatus = 'Interested' | 'Not Interested' | 'No Reply' | 'Dead End' | 'Re-follow';
+
 export interface ContactAttempt {
   id: string;
   date: string;
   type: 'CALL' | 'WHATSAPP' | 'EMAIL' | 'OTHER';
   outcome: string;
+  interestStatus?: InterestStatus;
 }
 
 export type ActivityKind =
@@ -88,6 +91,7 @@ export interface ActivityEntry {
   actor?: string;
   /** Human-readable summary, e.g. "Status changed to JOINED". */
   summary: string;
+  interestStatus?: InterestStatus;
 }
 
 export interface Lead {
@@ -107,13 +111,26 @@ export interface Lead {
   isHot?: boolean;
   contactHistory?: ContactAttempt[];
   followUpCount?: number;
+  isPostDemo?: boolean;
   createdBy?: string;
+  interestStatus?: InterestStatus;
   /** Amount collected (₹) when the lead becomes JOINED. Falls back to ₹800 if unset. */
   amountCollected?: number;
   /** ISO date the lead was marked JOINED. */
   joinedDate?: string;
   /** Chronological audit trail of lead mutations. */
   activity?: ActivityEntry[];
+  parentName?: string;
+  lostReason?: string;
+}
+
+export interface TeacherEnquiry {
+  id: string;
+  phone: string;
+  date: string;
+  source: string;
+  staffName: string;
+  notes?: string;
 }
 
 export interface Demo {
@@ -126,9 +143,10 @@ export interface Demo {
   teacher: string;
   subject: string;
   class: string;
-  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW' | 'RESCHEDULED';
+  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW' | 'RESCHEDULED' | 'ATTENDED' | 'JOINED';
   meetLink?: string;
   createdBy?: string;
+  schedulingNotes?: string;
 }
 
 export interface StaffPerformance {

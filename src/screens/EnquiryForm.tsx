@@ -9,7 +9,7 @@ import { isLeadOwner, getLeadOwnerName } from '../utils/leadAccess';
 
 export default function EnquiryForm() {
   const { currentUser, hasPermission } = useAuth();
-  const { addLead, logReEnquiry, addContactAttemptToLead, requestLeadHandoff, leads, leadSources, grades, subjects, syllabi } = useData();
+  const { addLead, addTeacherEnquiry, logReEnquiry, addContactAttemptToLead, requestLeadHandoff, leads, leadSources, grades, subjects, syllabi } = useData();
   const navigate = useNavigate();
 
   const canManageDuplicateLead = (lead: Lead) =>
@@ -24,15 +24,17 @@ export default function EnquiryForm() {
 
   const [formData, setFormData] = useState({
     name: '',
+    parentName: '',
     email: '',
     phone: '',
-    class: defaultGrade,
-    subject: defaultSubject,
-    syllabus: defaultSyllabus,
+    class: '',
+    subject: '',
+    syllabus: '',
     date: new Date().toISOString().split('T')[0],
     country: 'IN', // Store ISO code
     dialCode: '+91',
-    source: defaultSource
+    source: defaultSource,
+    isTeacherEnquiry: false
   });
 
   const [duplicationStatus, setDuplicationStatus] = useState<null | 'YES' | 'NO'>(null);
@@ -47,8 +49,8 @@ export default function EnquiryForm() {
   // Reset form data if component remounts or user clicks "add another"
   const resetForm = () => {
     setFormData({
-      name: '', email: '', phone: '', class: defaultGrade, subject: defaultSubject, syllabus: defaultSyllabus,
-      date: new Date().toISOString().split('T')[0], country: 'IN', dialCode: '+91', source: defaultSource
+      name: '', parentName: '', email: '', phone: '', class: '', subject: '', syllabus: '',
+      date: new Date().toISOString().split('T')[0], country: 'IN', dialCode: '+91', source: defaultSource, isTeacherEnquiry: false
     });
     setDuplicationStatus(null);
     setDuplicateLead(null);
@@ -168,21 +170,44 @@ export default function EnquiryForm() {
 
     setTimeout(() => {
       const phone = `${formData.dialCode} ${formData.phone}`.trim();
-      addLead({
-        name: formData.name.trim() || phone,
-        email: formData.email || undefined,
-        phone,
-        class: formData.class,
-        subject: formData.subject,
-        syllabus: formData.syllabus,
-        date: formData.date,
-        status: 'NEW',
-        source: formData.source,
-        country: formData.country,
-        assignedTo: currentUser?.name,
-        createdBy: currentUser?.name,
-        notes: []
-      });
+      
+      if (formData.isTeacherEnquiry) {
+        const res = addTeacherEnquiry({
+          phone,
+          date: formData.date,
+          source: formData.source,
+          staffName: currentUser?.name || 'Unknown',
+          notes: formData.name ? `Name provided: ${formData.name}` : undefined
+        });
+        if (!res.success) {
+          setErrors({ submit: res.error || 'Failed to add teacher enquiry' });
+          setIsSubmitting(false);
+          return;
+        }
+      } else {
+        const res = addLead({
+          name: formData.name.trim() || phone,
+          parentName: formData.parentName.trim() || undefined,
+          email: formData.email || undefined,
+          phone,
+          class: formData.class || 'Unknown',
+          subject: formData.subject || undefined,
+          syllabus: formData.syllabus || undefined,
+          date: formData.date,
+          status: 'NEW',
+          source: formData.source,
+          country: formData.country,
+          assignedTo: currentUser?.name,
+          createdBy: currentUser?.name,
+          notes: []
+        });
+        
+        if (!res.success) {
+          setErrors({ submit: res.error || 'Failed to add lead' });
+          setIsSubmitting(false);
+          return;
+        }
+      }
       
       setIsSubmitting(false);
       setSuccessMode('created');
@@ -443,8 +468,27 @@ export default function EnquiryForm() {
                           {errors.name && <p className="text-red-500 text-xs font-bold mt-2">{errors.name}</p>}
                         </div>
 
+                        <div className={`p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors ${errors.parentName ? 'bg-red-50/50' : ''}`}>
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Parent Name (Optional)</label>
+                          <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                              <UserPlus size={18} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
+                            </div>
+                            <input 
+                              type="text" 
+                              placeholder="Parent's Name"
+                              value={formData.parentName}
+                              onChange={(e) => {
+                                setFormData({...formData, parentName: e.target.value});
+                                if (errors.parentName) setErrors({...errors, parentName: ''});
+                              }}
+                              className={`${inputStyles} pl-8 ${errors.parentName ? errorStyles : ''}`}
+                            />
+                          </div>
+                        </div>
+
                         <div className={`p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors ${errors.email ? 'bg-red-50/50' : ''}`}>
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Email Address</label>
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Email Address (Optional)</label>
                           <div className="relative group">
                             <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
                               <Mail size={18} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
@@ -466,15 +510,32 @@ export default function EnquiryForm() {
                     </div>
 
                     <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
+                      <div className="bg-white rounded-xl border border-[#e4e4e7] p-3 sm:p-4 mb-4 flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-[#18181b]">Teacher Enquiry</p>
+                          <p className="text-xs text-[#71717a]">Check if this is a teacher looking for a job</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer"
+                            checked={formData.isTeacherEnquiry}
+                            onChange={(e) => setFormData({...formData, isTeacherEnquiry: e.target.checked})}
+                          />
+                          <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#18181b]"></div>
+                        </label>
+                      </div>
+
                       <div className="bg-white rounded-xl border border-[#e4e4e7] divide-y divide-[#e4e4e7] overflow-hidden">
                         <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Grade</label>
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Grade (Optional)</label>
                           <div className="relative">
                             <select 
                               value={formData.class}
                               onChange={(e) => setFormData({...formData, class: e.target.value})}
                               className={`${inputStyles} appearance-none pr-8`}
                             >
+                              <option value="">Select Grade</option>
                               {grades.map(c => (
                                 <option key={c} value={c}>{c}</option>
                               ))}
@@ -484,13 +545,14 @@ export default function EnquiryForm() {
                         </div>
 
                         <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Subject</label>
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Subject (Optional)</label>
                           <div className="relative">
                             <select
                               value={formData.subject}
                               onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                               className={`${inputStyles} appearance-none pr-8`}
                             >
+                              <option value="">Select Subject</option>
                               {subjects.map(s => (
                                 <option key={s} value={s}>{s}</option>
                               ))}
@@ -500,13 +562,14 @@ export default function EnquiryForm() {
                         </div>
 
                         <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Syllabus</label>
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Syllabus (Optional)</label>
                           <div className="relative">
                             <select 
                               value={formData.syllabus}
                               onChange={(e) => setFormData({...formData, syllabus: e.target.value})}
                               className={`${inputStyles} appearance-none pr-8`}
                             >
+                              <option value="">Select Syllabus</option>
                               {syllabi.map(s => (
                                 <option key={s} value={s}>{s}</option>
                               ))}
@@ -572,6 +635,12 @@ export default function EnquiryForm() {
                           : 'Number is verified and unique. Fill in the details below.'}
                       </p>
                     </div>
+
+                    {errors.submit && (
+                      <div className="bg-red-50 border border-red-200 rounded-[24px] p-4 mt-4">
+                        <p className="text-red-600 text-sm font-bold text-center">{errors.submit}</p>
+                      </div>
+                    )}
 
                     <button
                       type="submit"

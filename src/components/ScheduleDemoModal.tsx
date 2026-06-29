@@ -28,18 +28,30 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
   const [leadSearchQuery, setLeadSearchQuery] = useState('');
   const [isLeadDropdownOpen, setIsLeadDropdownOpen] = useState(false);
 
+  const [schedulingNotes, setSchedulingNotes] = useState('');
+  const [editableName, setEditableName] = useState('');
+  const [editableClass, setEditableClass] = useState('');
+  const [editableSubject, setEditableSubject] = useState('');
+
   // Reset form when modal opens with a new lead
   useEffect(() => {
     if (isOpen) {
       if (lead) {
         setSelectedLeadId(lead.id);
+        setEditableName(lead.name === lead.phone ? '' : lead.name);
+        setEditableClass(lead.class === 'Unknown' ? '' : (lead.class || ''));
+        setEditableSubject(lead.subject || '');
       } else {
         setSelectedLeadId('');
+        setEditableName('');
+        setEditableClass('');
+        setEditableSubject('');
       }
       setDate('');
       setTime('');
       setTeacher('');
       setMeetLink('');
+      setSchedulingNotes('');
       setLeadSearchQuery('');
       setIsLeadDropdownOpen(false);
     }
@@ -61,26 +73,42 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!activeLead || !date || !time || !teacher) return;
+    if (!activeLead || !date || !time) return;
+
+    if (!editableName.trim()) {
+      alert("Please provide the student's real name before scheduling a demo.");
+      return;
+    }
+    
+    if (!editableClass.trim() || editableClass.trim() === 'Unknown') {
+      alert("Please provide the student's class before scheduling a demo.");
+      return;
+    }
 
     // Create the demo record
     addDemo({
       leadId: activeLead.id,
-      studentName: activeLead.name,
+      studentName: editableName.trim(),
       phone: activeLead.phone,
-      class: activeLead.class,
-      subject: activeLead.subject || 'General',
+      class: editableClass.trim(),
+      subject: editableSubject || activeLead.subject || 'General',
       date,
       time,
       teacher,
       status: 'SCHEDULED',
       meetLink,
+      schedulingNotes,
       createdBy: currentUser?.name
     });
 
-    // Optionally move lead to IN PROGRESS if they are NEW
-    if (activeLead.status === 'NEW') {
-      updateLead(activeLead.id, { status: 'IN PROGRESS' });
+    // Update lead with new name/class and move to IN PROGRESS if NEW
+    const leadUpdates: Partial<Lead> = {};
+    if (activeLead.status === 'NEW') leadUpdates.status = 'IN PROGRESS';
+    if (editableName.trim() !== activeLead.name) leadUpdates.name = editableName.trim();
+    if (editableClass.trim() !== activeLead.class) leadUpdates.class = editableClass.trim();
+    
+    if (Object.keys(leadUpdates).length > 0) {
+      updateLead(activeLead.id, leadUpdates);
     }
 
     if (onDemoScheduled) onDemoScheduled();
@@ -138,6 +166,8 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
                                   key={l.id}
                                   onClick={() => {
                                     setSelectedLeadId(l.id);
+                                    setEditableClass(l.class || '');
+                                    setEditableSubject(l.subject || '');
                                     setIsLeadDropdownOpen(false);
                                   }}
                                   className="px-4 py-3 hover:bg-[#f4f4f5] cursor-pointer transition-colors border-b border-[#f4f4f5] last:border-0"
@@ -173,19 +203,51 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
                   </div>
                 )}
 
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">
+                    Student Name <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User size={16} className="text-[#a1a1aa]" />
+                    </div>
+                    <input 
+                      type="text" 
+                      value={editableName}
+                      onChange={e => setEditableName(e.target.value)}
+                      placeholder="e.g. John Doe" 
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-[#e4e4e7] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all" 
+                    />
+                  </div>
+                </div>
+
                 <div className="flex gap-4">
                   <div className="flex-1 space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Class/Grade</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">
+                      Class/Grade <span className="text-red-500">*</span>
+                    </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <GraduationCap size={16} className="text-[#a1a1aa]" />
                       </div>
-                      <input type="text" disabled value={activeLead?.class || ''} placeholder="Select a lead..." className="w-full pl-10 pr-4 py-3 bg-[#f4f4f5] border border-transparent rounded-xl text-sm font-semibold text-[#a1a1aa] cursor-not-allowed" />
+                      <input 
+                        type="text" 
+                        value={editableClass}
+                        onChange={e => setEditableClass(e.target.value)}
+                        placeholder="e.g. Class 10" 
+                        className="w-full pl-10 pr-4 py-3 bg-white border border-[#e4e4e7] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all" 
+                      />
                     </div>
                   </div>
                   <div className="flex-1 space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Subject</label>
-                    <input type="text" disabled value={activeLead?.subject || 'General'} className="w-full px-4 py-3 bg-[#f4f4f5] border border-transparent rounded-xl text-sm font-semibold text-[#a1a1aa] cursor-not-allowed" />
+                    <input 
+                      type="text" 
+                      value={editableSubject}
+                      onChange={e => setEditableSubject(e.target.value)}
+                      placeholder="e.g. Mathematics"
+                      className="w-full px-4 py-3 bg-white border border-[#e4e4e7] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all" 
+                    />
                   </div>
                 </div>
 
@@ -222,14 +284,13 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Assigned Teacher</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Assigned Teacher (Optional)</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <User size={16} className="text-[#a1a1aa]" />
                     </div>
                     <input 
                       type="text" 
-                      required
                       placeholder="e.g. John Doe"
                       value={teacher}
                       onChange={e => setTeacher(e.target.value)}
@@ -246,6 +307,16 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
                     value={meetLink}
                     onChange={e => setMeetLink(e.target.value)}
                     className="w-full px-4 py-3 bg-white border border-[#e4e4e7] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all" 
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Scheduling Notes (Optional)</label>
+                  <textarea 
+                    placeholder="E.g. Student requested special focus on Algebra..."
+                    value={schedulingNotes}
+                    onChange={e => setSchedulingNotes(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-[#e4e4e7] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all resize-none h-20" 
                   />
                 </div>
 

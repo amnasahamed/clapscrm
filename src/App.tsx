@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, us
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Home as HomeIcon, Users, Video, BarChart3, Search, Settings as LucideSettings,
-  Plus, ArrowLeft, ShieldCheck, LogOut, Command, Zap, MoreHorizontal, X
+  Plus, ArrowLeft, ShieldCheck, LogOut, Command, Zap, MoreHorizontal, X, GraduationCap
 } from 'lucide-react';
 
 import Home from './screens/Home';
@@ -11,6 +11,7 @@ import Leads from './screens/Leads';
 import Demos from './screens/Demos';
 import Analytics from './screens/Analytics';
 import EnquiryForm from './screens/EnquiryForm';
+import Joined from './screens/Joined';
 import Settings from './screens/Settings';
 import Admin from './screens/Admin';
 import LoginScreen from './screens/LoginScreen';
@@ -28,7 +29,7 @@ import { useAppearancePrefs } from './hooks/useAppearancePrefs';
 import { MOBILE_FAB_BOTTOM } from './constants/layout';
 import { filterViewableLeads } from './utils/leadAccess';
 
-const PRIMARY_NAV_PATHS = ['/', '/leads', '/demos', '/settings'];
+const PRIMARY_NAV_PATHS = ['/', '/leads', '/joined', '/demos', '/settings'];
 
 function MainLayout() {
   const location = useLocation();
@@ -87,6 +88,7 @@ function MainLayout() {
   const allNavItems = useMemo(() => [
     { path: '/', label: 'Home', icon: HomeIcon, show: true },
     { path: '/leads', label: 'Leads', icon: Users, show: true },
+    { path: '/joined', label: 'Joined', icon: GraduationCap, show: true },
     { path: '/demos', label: 'Demos', icon: Video, show: true },
     { path: '/settings', label: 'Settings', icon: LucideSettings, show: true },
     { path: '/admin', label: 'Admin', icon: ShieldCheck, show: hasPermission('admin_dashboard') },
@@ -104,6 +106,7 @@ function MainLayout() {
       case '/': return 'ClapsCRM';
       case '/admin': return 'Admin';
       case '/leads': return 'Leads';
+      case '/joined': return 'Joined Students';
       case '/demos': return 'Demos';
       case '/analytics': return 'Insights';
       case '/settings': return 'Settings';
@@ -352,6 +355,7 @@ function MainLayout() {
               <Route path="/" element={<ProtectedRoute><PageTransition routeKey="home"><Home /></PageTransition></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute requireRole="admin"><PageTransition routeKey="admin"><Admin /></PageTransition></ProtectedRoute>} />
               <Route path="/leads" element={<ProtectedRoute><PageTransition routeKey="leads"><Leads /></PageTransition></ProtectedRoute>} />
+              <Route path="/joined" element={<ProtectedRoute><PageTransition routeKey="joined"><Joined /></PageTransition></ProtectedRoute>} />
               <Route path="/demos" element={<ProtectedRoute><PageTransition routeKey="demos"><Demos /></PageTransition></ProtectedRoute>} />
               <Route path="/analytics" element={<ProtectedRoute><PageTransition routeKey="analytics"><Analytics /></PageTransition></ProtectedRoute>} />
               <Route path="/enquiry" element={<ProtectedRoute><PageTransition routeKey="enquiry"><EnquiryForm /></PageTransition></ProtectedRoute>} />

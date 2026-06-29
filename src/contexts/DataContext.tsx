@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Lead, Demo, Reminder, ContactAttempt, AccessLogEntry, LeadTransferRequest, DEFAULT_LEAD_SOURCES, DEFAULT_GRADES, DEFAULT_SUBJECTS, DEFAULT_SYLLABI, generateId, ActivityKind } from '../types';
+import { Lead, Demo, Reminder, ContactAttempt, AccessLogEntry, LeadTransferRequest, DEFAULT_LEAD_SOURCES, DEFAULT_GRADES, DEFAULT_SUBJECTS, DEFAULT_SYLLABI, generateId, ActivityKind, TeacherEnquiry } from '../types';
 import { MOCK_LEADS, MOCK_DEMOS } from '../constants';
 import { isLeadManagedBy, shouldHandoffLeadOnOffboard } from '../utils/leadAccess';
 import { buildActivity, appendActivity } from '../utils/activityLog';
@@ -14,6 +14,7 @@ interface DataStorage {
   whatsappTemplates: { lead: string; demo: string };
   accessLogs: AccessLogEntry[];
   leadTransfers: LeadTransferRequest[];
+  teacherEnquiries: TeacherEnquiry[];
   leadSources: string[];
   grades: string[];
   subjects: string[];
@@ -27,12 +28,14 @@ interface DataContextType {
   whatsappTemplates: { lead: string; demo: string };
   accessLogs: AccessLogEntry[];
   leadTransfers: LeadTransferRequest[];
+  teacherEnquiries: TeacherEnquiry[];
   leadSources: string[];
   grades: string[];
   subjects: string[];
   syllabi: string[];
 
-  addLead: (lead: Omit<Lead, 'id'>) => void;
+  addLead: (lead: Omit<Lead, 'id'>) => { success: boolean; error?: string };
+  addTeacherEnquiry: (enquiry: Omit<TeacherEnquiry, 'id'>) => { success: boolean; error?: string };
   updateLead: (id: string, updates: Partial<Lead>) => void;
   deleteLead: (id: string) => void;
   
@@ -127,6 +130,7 @@ function loadData(): DataStorage {
         whatsappTemplates: parsed.whatsappTemplates || defaultTemplates,
         accessLogs: Array.isArray(parsed.accessLogs) ? parsed.accessLogs : [],
         leadTransfers: Array.isArray(parsed.leadTransfers) ? parsed.leadTransfers : [],
+        teacherEnquiries: Array.isArray(parsed.teacherEnquiries) ? parsed.teacherEnquiries : [],
         leadSources: Array.isArray(parsed.leadSources) && parsed.leadSources.length > 0
           ? parsed.leadSources
           : [...DEFAULT_LEAD_SOURCES],
@@ -149,6 +153,7 @@ function loadData(): DataStorage {
     whatsappTemplates: defaultTemplates,
     accessLogs: [],
     leadTransfers: [],
+    teacherEnquiries: [],
     leadSources: [...DEFAULT_LEAD_SOURCES],
     grades: [...DEFAULT_GRADES],
     subjects: [...DEFAULT_SUBJECTS],
@@ -191,8 +196,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }),
   });
 
-  const addLead = (leadData: Omit<Lead, 'id'>) => {
-    if (!leadData.phone?.trim()) return;
+  const addLead = (leadData: Omit<Lead, 'id'>): { success: boolean; error?: string } => {
+    if (!leadData.phone?.trim()) return { success: false, error: 'Phone is required' };
+
+    // Duplicate number protection (7-day lock for other staff)
+    const existingLeads = data.leads.filter(l => l.phone === leadData.phone);
+    if (existingLeads.length > 0) {
+      const mostRecent = existingLeads.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+      const createdDate = new Date(mostRecent.date);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - createdDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+      
+      const currentStaff = currentUser?.name;
+      // If current staff created or owns ANY lead with this phone number, they are exempt from the lock.
+      const isOriginalStaff = existingLeads.some(l => l.createdBy === currentStaff || l.assignedTo === currentStaff);
+      
+      if (diffDays <= 7 && !isOriginalStaff) {
+        return { success: false, error: "This phone number was already added by another staff member within the last 7 days." };
+      }
+    }
+
+    // Teacher Enquiry Check
+    const isTeacher = data.teacherEnquiries.find(te => te.phone === leadData.phone);
+    if (isTeacher) {
+      return { success: false, error: "This number belongs to a Teacher Enquiry." };
+    }
 
     const createdBy = leadData.createdBy ?? leadData.assignedTo ?? 'Unknown';
     const newLead: Lead = {
@@ -202,6 +231,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
       activity: [buildActivity('created', `Lead created as ${leadData.status}`, createdBy)],
     };
     setData(prev => ({ ...prev, leads: [newLead, ...prev.leads] }));
+    return { success: true };
+  };
+
+  const addTeacherEnquiry = (enquiryData: Omit<TeacherEnquiry, 'id'>): { success: boolean; error?: string } => {
+    const isTeacher = data.teacherEnquiries.find(te => te.phone === enquiryData.phone);
+    if (isTeacher) {
+      return { success: false, error: "This number belongs to a Teacher Enquiry." };
+    }
+    const newEnquiry: TeacherEnquiry = {
+      ...enquiryData,
+      id: generateId()
+    };
+    setData(prev => ({ ...prev, teacherEnquiries: [newEnquiry, ...prev.teacherEnquiries] }));
+    return { success: true };
   };
 
   const updateLead = (id: string, updates: Partial<Lead>) => {
@@ -259,10 +302,35 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const updateDemo = (id: string, updates: Partial<Demo>) => {
-    setData(prev => ({
-      ...prev,
-      demos: prev.demos.map(demo => demo.id === id ? { ...demo, ...updates } : demo)
-    }));
+    setData(prev => {
+      const demo = prev.demos.find(d => d.id === id);
+      if (!demo) return prev;
+      
+      const nextDemos = prev.demos.map(d => d.id === id ? { ...d, ...updates } : d);
+      let nextLeads = prev.leads;
+
+      // If demo is marked as completed/attended, advance lead to post-demo phase
+      if (demo.leadId && updates.status && (updates.status === 'COMPLETED' || updates.status === 'ATTENDED')) {
+        nextLeads = prev.leads.map(l => {
+          if (l.id !== demo.leadId) return l;
+          if (l.isPostDemo) return l; // Already in post-demo phase
+          
+          const entry = buildActivity('note_added', 'Post-Demo Follow-up Phase Started', currentUser?.name || 'System');
+          return {
+            ...l,
+            isPostDemo: true,
+            followUpCount: 0,
+            activity: appendActivity(l.activity, entry)
+          };
+        });
+      }
+
+      return {
+        ...prev,
+        demos: nextDemos,
+        leads: nextLeads
+      };
+    });
   };
 
   const deleteDemo = (id: string) => {
@@ -704,6 +772,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       whatsappTemplates: defaultTemplates,
       accessLogs: data.accessLogs,
       leadTransfers: [],
+      teacherEnquiries: [],
       leadSources: [...DEFAULT_LEAD_SOURCES],
       grades: [...DEFAULT_GRADES],
       subjects: [...DEFAULT_SUBJECTS],
@@ -719,11 +788,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
       whatsappTemplates: data.whatsappTemplates,
       accessLogs: data.accessLogs,
       leadTransfers: data.leadTransfers,
+      teacherEnquiries: data.teacherEnquiries,
       leadSources: data.leadSources,
       grades: data.grades,
       subjects: data.subjects,
       syllabi: data.syllabi,
-      addLead, updateLead, deleteLead,
+      addLead, addTeacherEnquiry, updateLead, deleteLead,
       addDemo, updateDemo, deleteDemo,
       addNoteToLead, updateNoteInLead, deleteNoteFromLead,
       addContactAttemptToLead, incrementLeadFollowUp, logReEnquiry, updateWhatsAppTemplate,

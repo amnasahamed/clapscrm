@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import type React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ChevronDown, ChevronRight, Info, ArrowUpDown, LayoutGrid, List as ListIcon, Phone, MessageCircle, Star, Trash2, X, CheckSquare, Video, MoreHorizontal, ArrowRightLeft, UserCog, Check, Ban, Plus, Pencil, Download, History } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, Info, ArrowUpDown, LayoutGrid, List as ListIcon, Phone, MessageCircle, Star, Trash2, X, CheckSquare, Video, MoreHorizontal, ArrowRightLeft, UserCog, Check, Ban, Plus, Pencil, Download, History, Zap } from 'lucide-react';
 import { Lead } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
@@ -29,6 +29,9 @@ import { filterViewableLeads } from '../utils/leadAccess';
 import { isInDateRange } from '../utils/dateFilter';
 import { JOINED_FALLBACK_AMOUNT } from '../utils/collection';
 import { exportLeadsCsv } from '../utils/exporters';
+import { getCountryFlag } from '../utils/flags';
+import QuickEditLeadModal from '../components/QuickEditLeadModal';
+import LostReasonModal from '../components/LostReasonModal';
 
 type SortField = 'date' | 'name' | 'status';
 type ViewMode = 'list' | 'board';
@@ -49,10 +52,11 @@ export const STATUS_EMOJIS: Record<LeadStatus, string> = {
   'LOST': '❌',
 };
 
-function FollowUpTracker({ followUpCount, onIncrement }: { followUpCount: number; onIncrement: () => void }) {
+function FollowUpTracker({ followUpCount, isPostDemo, onIncrement }: { followUpCount: number; isPostDemo?: boolean; onIncrement: () => void }) {
   const count = followUpCount || 0;
+  const phaseName = isPostDemo ? 'Post-Demo Follow-ups' : 'Pre-Demo Follow-ups';
   return (
-    <div className="w-full mt-1" title={`${count}/5 Follow-ups`}>
+    <div className="w-full mt-1" title={`${count}/5 ${phaseName}`}>
       <div className="flex items-center gap-1 w-full p-1 bg-[#f4f4f5] rounded-xl border border-[#e4e4e7] shadow-inner">
         {[1, 2, 3, 4, 5].map((step) => {
           const isCompleted = step <= count;
@@ -108,13 +112,7 @@ function LeadStatusControl({
     <select
       value={status}
       onChange={(e) => {
-        const val = e.target.value as LeadStatus;
-        if (status === 'IN PROGRESS' && val === 'LOST' && (followUpCount || 0) < 5) {
-          alert(`You must log 5 follow-ups before marking this lead as LOST. Currently at ${followUpCount || 0}/5.`);
-          e.target.value = status;
-          return;
-        }
-        onChange(val);
+        onChange(e.target.value as LeadStatus);
       }}
       onClick={(e) => e.stopPropagation()}
       className={`appearance-none px-2.5 py-1 rounded-md text-xs font-medium border cursor-pointer outline-none focus:ring-2 focus:ring-[#18181b]/20 ${STATUS_COLORS[status]} ${className}`}
@@ -175,6 +173,8 @@ export default function Leads() {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   // Pending JOINED transition — captured so we can prompt for the collected amount.
   const [pendingJoin, setPendingJoin] = useState<Lead | null>(null);
+  const [pendingLost, setPendingLost] = useState<Lead | null>(null);
+  const [quickEditingLead, setQuickEditingLead] = useState<Lead | null>(null);
 
   // High Volume State
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
@@ -303,20 +303,44 @@ export default function Leads() {
    */
   const handleStatusChange = (lead: Lead, nextStatus: LeadStatus) => {
     if (nextStatus === lead.status) return;
+
+    if (lead.status === 'IN PROGRESS' && nextStatus === 'LOST' && (lead.followUpCount || 0) < 5) {
+      alert(`You must log 5 follow-ups before marking this lead as LOST. Currently at ${lead.followUpCount || 0}/5.`);
+      return;
+    }
+
     if (nextStatus === 'JOINED') {
       setPendingJoin(lead);
+      return;
+    }
+    if (nextStatus === 'LOST') {
+      setPendingLost(lead);
       return;
     }
     updateLead(lead.id, { status: nextStatus });
   };
 
-  const confirmJoin = (leadId: string, amountCollected: number) => {
-    updateLead(leadId, {
+  const confirmJoin = (leadId: string, amountCollected: number, name?: string, studentClass?: string) => {
+    const updates: Partial<Lead> = {
       status: 'JOINED',
       amountCollected,
       joinedDate: new Date().toISOString(),
-    });
+    };
+    if (name) updates.name = name;
+    if (studentClass) updates.class = studentClass;
+    
+    updateLead(leadId, updates);
     setPendingJoin(null);
+    setSelectedMobileLead(null);
+  };
+
+  const confirmLost = (leadId: string, reason: string) => {
+    const lead = leads.find(l => l.id === leadId);
+    updateLead(leadId, {
+      status: 'LOST',
+      notes: [...(lead?.notes || []), `Marked as lost. Reason: ${reason}`]
+    });
+    setPendingLost(null);
     setSelectedMobileLead(null);
   };
 
@@ -366,6 +390,10 @@ export default function Leads() {
 
   const handleBulkStatusChange = (status: string) => {
     if (!hasPermission('bulk_operations')) return;
+    if (status === 'JOINED' || status === 'LOST') {
+      alert(`Bulk changing to ${status} is disabled to ensure accurate data capture.`);
+      return;
+    }
     const isJoining = status === 'JOINED';
     selectedLeads.forEach(id => {
       const lead = leads.find(l => l.id === id);
@@ -444,9 +472,9 @@ export default function Leads() {
           </div>
         </div>
 
-        {/* iOS Segmented Control */}
-        <div className="shrink-0 bg-white px-4 pb-3 border-b border-[#f4f4f5]">
-          <div className="flex bg-[#f4f4f5] p-1 rounded-xl items-center w-full">
+        {/* Filter Buttons */}
+        <div className="shrink-0 bg-white px-4 pb-3 border-b border-[#f4f4f5] overflow-x-auto no-scrollbar scroll-fade-x">
+          <div className="flex gap-2">
             {COLUMNS.map(col => {
               const count = filteredLeads.filter(l => l.status === col).length;
               const isActive = activeMobileTab === col;
@@ -455,13 +483,13 @@ export default function Leads() {
                 <button
                   key={col}
                   onClick={() => { setActiveMobileTab(col); setVisibleListCount(50); }}
-                  className={`flex-1 py-2.5 min-h-[44px] text-xs font-bold rounded-lg transition-all ${
+                  className={`px-4 py-2 min-h-[40px] text-xs font-bold rounded-full transition-all border whitespace-nowrap ${
                     isActive
-                      ? 'bg-white text-[#18181b] shadow-sm'
-                      : 'text-[#a1a1aa] active:bg-[#e4e4e7]'
+                      ? 'bg-[#18181b] text-white border-[#18181b] shadow-sm'
+                      : 'bg-white text-[#71717a] border-[#e4e4e7] active:bg-[#f4f4f5]'
                   }`}
                 >
-                  {shortName} {count}
+                  {shortName} <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-white/20' : 'bg-[#f4f4f5]'}`}>{count}</span>
                 </button>
               );
             })}
@@ -519,18 +547,28 @@ export default function Leads() {
                     <div className="flex items-center justify-between mb-0.5">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <h4 className="font-black tracking-tight text-[#18181b] truncate text-base">{lead.name}</h4>
+                        <span className="text-sm">{getCountryFlag(lead.country)}</span>
                         {lead.isHot && <Star size={14} className="text-amber-500 shrink-0" fill="currentColor" />}
+                        {lead.interestStatus && (
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 ${
+                            lead.interestStatus === 'HOT' ? 'bg-amber-100 text-amber-700' :
+                            lead.interestStatus === 'WARM' ? 'bg-blue-100 text-blue-700' :
+                            'bg-slate-200 text-slate-700'
+                          }`}>
+                            {lead.interestStatus}
+                          </span>
+                        )}
                       </div>
                       <button onClick={(e) => { e.stopPropagation(); setSelectedMobileLead(lead); }} className="p-2 -mr-2 -mt-1 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#a1a1aa] active:bg-[#f4f4f5] rounded-xl shrink-0">
                         <MoreHorizontal size={20} />
                       </button>
                     </div>
-                    <p className="text-xs font-semibold text-[#71717a] truncate mb-2">{lead.class} • {lead.subject || 'General'}</p>
+                    <p className="text-xs font-semibold text-[#71717a] truncate mb-2">{lead.phone} • {lead.class} • {lead.source}</p>
                     <div className="flex items-center justify-between mt-auto">
                       <span className="text-[11px] font-bold text-[#a1a1aa]">{lead.date}</span>
                       {lead.status === 'IN PROGRESS' && (
                         <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg ring-1 ring-inset ring-blue-100">
-                          {lead.followUpCount || 0}/5 Follow-ups
+                          {lead.followUpCount || 0}/5 {lead.isPostDemo ? 'Post-Demo' : 'Pre-Demo'}
                         </span>
                       )}
                     </div>
@@ -753,10 +791,20 @@ export default function Leads() {
                                     <div className="flex justify-between items-start mb-2 pr-6">
                                       <div className="flex items-center gap-2 min-w-0">
                                         <h4 className="font-bold text-[#18181b] truncate">{lead.name}</h4>
+                                        <span className="text-sm">{getCountryFlag(lead.country)}</span>
                                         {lead.isHot && <span className="bg-amber-100 text-amber-600 text-[8px] font-black uppercase px-2 py-0.5 rounded-full ring-1 ring-amber-200 shrink-0">Hot</span>}
+                                        {lead.interestStatus && (
+                                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 ${
+                                            lead.interestStatus === 'HOT' ? 'bg-amber-100 text-amber-700' :
+                                            lead.interestStatus === 'WARM' ? 'bg-blue-100 text-blue-700' :
+                                            'bg-slate-200 text-slate-700'
+                                          }`}>
+                                            {lead.interestStatus}
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
-                                    <p className="text-xs font-semibold text-[#71717a] mb-3 truncate">{lead.class} • {lead.subject || 'General'}</p>
+                                    <p className="text-xs font-semibold text-[#71717a] mb-3 truncate">{lead.phone} • {lead.class} • {lead.source}</p>
 
                                     <div className="mb-3" onClick={(e) => e.stopPropagation()}>
                                       <LeadStatusControl
@@ -768,6 +816,7 @@ export default function Leads() {
                                       {lead.status === 'IN PROGRESS' && (
                                         <FollowUpTracker 
                                           followUpCount={lead.followUpCount} 
+                                          isPostDemo={lead.isPostDemo}
                                           onIncrement={() => incrementLeadFollowUp(lead.id)} 
                                         />
                                       )}
@@ -870,6 +919,7 @@ export default function Leads() {
                   onTransfer={() => setTransferringLead(lead)}
                   onReassign={() => setReassigningLead(lead)}
                   onEdit={() => setEditingLead(lead)}
+                  onQuickEdit={() => setQuickEditingLead(lead)}
                   canEdit={canEditLead(lead)}
                   onIncrementFollowUp={() => incrementLeadFollowUp(lead.id)}
                 />
@@ -913,7 +963,7 @@ export default function Leads() {
                 defaultValue=""
               >
                 <option value="" disabled className="text-black">Change status</option>
-                {COLUMNS.map(c => <option key={c} value={c} className="text-black">{c}</option>)}
+                {COLUMNS.filter(c => c !== 'JOINED' && c !== 'LOST').map(c => <option key={c} value={c} className="text-black">{c}</option>)}
               </select>
               )}
               {hasPermission('delete_lead') && (
@@ -990,6 +1040,20 @@ export default function Leads() {
         onConfirm={confirmJoin}
       />
 
+      <LostReasonModal
+        isOpen={!!pendingLost}
+        lead={pendingLost}
+        onClose={() => setPendingLost(null)}
+        onConfirm={confirmLost}
+      />
+
+      <QuickEditLeadModal
+        isOpen={!!quickEditingLead}
+        lead={quickEditingLead}
+        onClose={() => setQuickEditingLead(null)}
+        onSave={handleSaveLead}
+      />
+
       {/* Mobile lead detail bottom sheet */}
       <BottomSheet
         isOpen={!!selectedMobileLead && selectedLeads.size === 0}
@@ -1051,6 +1115,8 @@ export default function Leads() {
                           }
                           if (col === 'JOINED') {
                             setPendingJoin(selectedMobileLead);
+                          } else if (col === 'LOST') {
+                            setPendingLost(selectedMobileLead);
                           } else {
                             handleStatusChange(selectedMobileLead, col);
                             setSelectedMobileLead(null);
@@ -1070,9 +1136,12 @@ export default function Leads() {
                 </div>
                 {selectedMobileLead.status === 'IN PROGRESS' && (
                   <div className="mt-5">
-                    <h4 className="text-[10px] uppercase tracking-widest font-black text-[#a1a1aa] mb-3">Follow-ups Logged</h4>
+                    <h4 className="text-[10px] uppercase tracking-widest font-black text-[#a1a1aa] mb-3">
+                      {selectedMobileLead.isPostDemo ? 'Post-Demo Follow-ups' : 'Pre-Demo Follow-ups'} Logged
+                    </h4>
                     <FollowUpTracker 
                       followUpCount={selectedMobileLead.followUpCount} 
+                      isPostDemo={selectedMobileLead.isPostDemo}
                       onIncrement={() => {
                         incrementLeadFollowUp(selectedMobileLead.id);
                         setSelectedMobileLead({ ...selectedMobileLead, followUpCount: (selectedMobileLead.followUpCount || 0) + 1 });
@@ -1087,9 +1156,12 @@ export default function Leads() {
                 <LeadStatusControl status={selectedMobileLead.status} onChange={() => {}} editable={false} followUpCount={selectedMobileLead.followUpCount} />
                 {selectedMobileLead.status === 'IN PROGRESS' && (
                   <div className="mt-5">
-                    <h4 className="text-[10px] uppercase tracking-widest font-black text-[#a1a1aa] mb-3">Follow-ups Logged</h4>
+                    <h4 className="text-[10px] uppercase tracking-widest font-black text-[#a1a1aa] mb-3">
+                      {selectedMobileLead.isPostDemo ? 'Post-Demo Follow-ups' : 'Pre-Demo Follow-ups'} Logged
+                    </h4>
                     <FollowUpTracker 
                       followUpCount={selectedMobileLead.followUpCount} 
+                      isPostDemo={selectedMobileLead.isPostDemo}
                       onIncrement={() => {
                         incrementLeadFollowUp(selectedMobileLead.id);
                         setSelectedMobileLead({ ...selectedMobileLead, followUpCount: (selectedMobileLead.followUpCount || 0) + 1 });
@@ -1103,14 +1175,24 @@ export default function Leads() {
             {/* Inset Grouped Action Menu */}
             <div className="bg-white border border-[#e4e4e7] rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] divide-y divide-[#e4e4e7]">
               {canEditLead(selectedMobileLead) && (
-                <button
-                  onClick={() => { setEditingLead(selectedMobileLead); setSelectedMobileLead(null); }}
-                  className="w-full py-4 px-4 text-[#18181b] bg-transparent font-bold flex items-center gap-3 active:bg-[#fafafa] transition-colors text-sm text-left"
-                >
-                  <Pencil size={18} className="text-[#71717a]" />
-                  <span className="flex-1">Edit details</span>
-                  <ChevronRight size={16} className="text-[#d4d4d8]" />
-                </button>
+                <>
+                  <button
+                    onClick={() => { setQuickEditingLead(selectedMobileLead); setSelectedMobileLead(null); }}
+                    className="w-full py-4 px-4 text-[#18181b] bg-transparent font-bold flex items-center gap-3 active:bg-[#fafafa] transition-colors text-sm text-left"
+                  >
+                    <Zap size={18} className="text-purple-500" />
+                    <span className="flex-1">Quick Edit</span>
+                    <ChevronRight size={16} className="text-[#d4d4d8]" />
+                  </button>
+                  <button
+                    onClick={() => { setEditingLead(selectedMobileLead); setSelectedMobileLead(null); }}
+                    className="w-full py-4 px-4 text-[#18181b] bg-transparent font-bold flex items-center gap-3 active:bg-[#fafafa] transition-colors text-sm text-left"
+                  >
+                    <Pencil size={18} className="text-[#71717a]" />
+                    <span className="flex-1">Edit all details</span>
+                    <ChevronRight size={16} className="text-[#d4d4d8]" />
+                  </button>
+                </>
               )}
               {canTransferLead(selectedMobileLead) && (
                 <button
@@ -1158,7 +1240,7 @@ function SortButton({ field, label, currentSort, order, onClick }: any) {
   );
 }
 
-function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onDelete, onUpdateStatus, onToggleHot, canDelete, canEditStatus, canEdit, onWhatsApp, onScheduleDemo, showOwner, canTransfer, canReassign, onTransfer, onReassign, onEdit, onIncrementFollowUp }: any) {
+function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onDelete, onUpdateStatus, onToggleHot, canDelete, canEditStatus, canEdit, onWhatsApp, onScheduleDemo, showOwner, canTransfer, canReassign, onTransfer, onReassign, onEdit, onQuickEdit, onIncrementFollowUp }: any) {
   return (
     <div id={id} className={`bg-white border rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center group cursor-pointer transition-colors premium-hover ${isSelected ? 'border-[#18181b] bg-[#fafafa]' : 'border-[#e4e4e7]'} ${isHighlighted ? 'ring-2 ring-[#18181b]/30 bg-amber-50/40' : ''}`}>
       <div className="hidden md:flex col-span-1 items-center">
@@ -1182,7 +1264,17 @@ function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onD
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <h3 className="font-bold text-[#18181b] text-sm truncate">{lead.name}</h3>
+            <span className="text-sm">{getCountryFlag(lead.country)}</span>
             {lead.isHot && <span className="bg-amber-100 text-amber-600 text-[8px] font-black uppercase px-2 py-0.5 rounded-full ring-1 ring-amber-200 shrink-0">Hot</span>}
+            {lead.interestStatus && (
+              <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 ${
+                lead.interestStatus === 'HOT' ? 'bg-amber-100 text-amber-700' :
+                lead.interestStatus === 'WARM' ? 'bg-blue-100 text-blue-700' :
+                'bg-slate-200 text-slate-700'
+              }`}>
+                {lead.interestStatus}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 text-xs font-semibold text-[#71717a] truncate">
             <Phone size={10}/> {lead.phone}
@@ -1203,6 +1295,7 @@ function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onD
         {lead.status === 'IN PROGRESS' && (
           <FollowUpTracker 
             followUpCount={lead.followUpCount} 
+            isPostDemo={lead.isPostDemo}
             onIncrement={onIncrementFollowUp} 
           />
         )}
@@ -1225,9 +1318,14 @@ function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onD
       )}
       <div className={`col-span-1 flex justify-end gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity mt-4 md:mt-0 ${showOwner ? 'md:col-span-1' : 'md:col-span-2'}`}>
         {canEdit && (
-          <button onClick={onEdit} className="p-2 bg-[#f4f4f5] text-[#18181b] hover:bg-[#e4e4e7] rounded-lg transition-colors interactive-element" title="Edit Lead">
-            <Pencil size={16} />
-          </button>
+          <>
+            <button onClick={onQuickEdit} className="p-2 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors interactive-element" title="Quick Edit">
+              <Zap size={16} />
+            </button>
+            <button onClick={onEdit} className="p-2 bg-[#f4f4f5] text-[#18181b] hover:bg-[#e4e4e7] rounded-lg transition-colors interactive-element" title="Edit Lead">
+              <Pencil size={16} />
+            </button>
+          </>
         )}
         {canTransfer && (
           <button onClick={onTransfer} className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors interactive-element" title="Transfer Lead">

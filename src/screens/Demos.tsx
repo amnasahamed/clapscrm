@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import {
   Calendar as CalendarIcon, Video, CheckCircle, XCircle, Search, PlayCircle, Plus,
-  List, MoreVertical, ChevronLeft, ChevronRight, Settings, Columns, X, Clock, User, Download, Trash2
+  List, MoreVertical, ChevronLeft, ChevronRight, Settings, Columns, X, Clock, User, Download, Trash2, MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
@@ -58,6 +58,8 @@ const STATUS_LABELS: Record<Demo['status'], string> = {
   CANCELLED: 'Cancelled',
   RESCHEDULED: 'Rescheduled',
   NO_SHOW: 'No Show',
+  ATTENDED: 'Attended',
+  JOINED: 'Joined',
 };
 
 export default function Demos() {
@@ -321,6 +323,11 @@ export default function Demos() {
                       </button>
                     </>
                   )}
+                  {demo.phone && (
+                    <button onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/${demo.phone.replace(/\D/g, '')}`, '_blank'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-[#18181b] hover:bg-[#f4f4f5] flex items-center gap-2 border-t border-[#e4e4e7]">
+                      <MessageCircle size={18} className="text-green-500 sm:w-3.5 sm:h-3.5" /> WhatsApp
+                    </button>
+                  )}
                 </div>
               </motion.div>
             </>
@@ -390,7 +397,7 @@ export default function Demos() {
 
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     <span className="text-[10px] font-bold text-[#71717a] bg-[#f4f4f5] px-2 py-1 rounded-lg flex items-center gap-1">
-                      <User size={10} /> {demo.teacher}
+                      <User size={10} /> {demo.teacher || 'Unassigned'}
                     </span>
                     {demo.meetLink && isPending && (
                       <a
@@ -404,6 +411,11 @@ export default function Demos() {
                       </a>
                     )}
                   </div>
+                  {demo.schedulingNotes && (
+                    <p className="mt-2 text-xs text-[#71717a] bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-100/50 inline-block">
+                      {demo.schedulingNotes}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -430,6 +442,27 @@ export default function Demos() {
         <SummaryChip icon={<Video size={16} className="text-indigo-500" />} label="Scheduled" value={todaySummary.scheduled} />
         <SummaryChip icon={<CheckCircle size={16} className="text-green-500" />} label="Completed" value={todaySummary.completed} />
         <SummaryChip icon={<XCircle size={16} className="text-red-500" />} label="Cancelled" value={todaySummary.cancelled} />
+      </div>
+
+      {/* Quick Date Filters */}
+      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 px-1">
+        {['TODAY', 'TOMORROW', 'THIS_WEEK', 'ALL'].map((range) => {
+          const isActive = filters.dateRange === range;
+          const label = range === 'ALL' ? 'All Demos' : range.replace('_', ' ');
+          return (
+            <button
+              key={range}
+              onClick={() => setFilters({ ...filters, dateRange: range as any })}
+              className={`px-4 py-2 min-h-[40px] text-xs font-bold rounded-full transition-all border whitespace-nowrap ${
+                isActive
+                  ? 'bg-[#18181b] text-white border-[#18181b] shadow-sm'
+                  : 'bg-white text-[#71717a] border-[#e4e4e7] active:bg-[#f4f4f5]'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Search + filter + view controls */}

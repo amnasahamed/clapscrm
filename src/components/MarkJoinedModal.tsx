@@ -9,7 +9,7 @@ interface MarkJoinedModalProps {
   isOpen: boolean;
   lead: Lead | null;
   onClose: () => void;
-  onConfirm: (leadId: string, amountCollected: number) => void;
+  onConfirm: (leadId: string, amountCollected: number, name?: string, studentClass?: string) => void;
 }
 
 /**
@@ -18,6 +18,11 @@ interface MarkJoinedModalProps {
  */
 export default function MarkJoinedModal({ isOpen, lead, onClose, onConfirm }: MarkJoinedModalProps) {
   const [amount, setAmount] = useState<string>('');
+  const [missingName, setMissingName] = useState<string>('');
+  const [missingClass, setMissingClass] = useState<string>('');
+
+  const needsName = lead?.name === lead?.phone;
+  const needsClass = lead?.class === 'Unknown' || !lead?.class;
 
   useEffect(() => {
     if (!lead) return;
@@ -25,12 +30,27 @@ export default function MarkJoinedModal({ isOpen, lead, onClose, onConfirm }: Ma
       ? lead.amountCollected
       : JOINED_FALLBACK_AMOUNT;
     setAmount(String(existing));
+    setMissingName('');
+    setMissingClass('');
   }, [lead]);
 
   const handleSubmit = () => {
     if (!lead) return;
+    if (needsName && !missingName.trim()) {
+      alert("Please enter the student's name.");
+      return;
+    }
+    if (needsClass && !missingClass.trim()) {
+      alert("Please enter the student's class.");
+      return;
+    }
     const parsed = Math.max(0, Math.round(Number(amount) || 0));
-    onConfirm(lead.id, parsed);
+    onConfirm(
+      lead.id, 
+      parsed, 
+      needsName ? missingName.trim() : undefined,
+      needsClass ? missingClass.trim() : undefined
+    );
   };
 
   if (!lead) return null;
@@ -76,6 +96,36 @@ export default function MarkJoinedModal({ isOpen, lead, onClose, onConfirm }: Ma
             This amount is added to collection totals once the lead is marked joined.
           </p>
         </div>
+
+        {needsName && (
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">
+              Student Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter student name"
+              value={missingName}
+              onChange={(e) => setMissingName(e.target.value)}
+              className="w-full bg-[#f4f4f5] border border-transparent rounded-xl px-4 py-3.5 min-h-[48px] text-sm font-bold text-[#18181b] outline-none focus:bg-white focus:border-[#18181b] transition-all"
+            />
+          </div>
+        )}
+
+        {needsClass && (
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">
+              Student Class <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Class 10"
+              value={missingClass}
+              onChange={(e) => setMissingClass(e.target.value)}
+              className="w-full bg-[#f4f4f5] border border-transparent rounded-xl px-4 py-3.5 min-h-[48px] text-sm font-bold text-[#18181b] outline-none focus:bg-white focus:border-[#18181b] transition-all"
+            />
+          </div>
+        )}
       </div>
 
       <div className="p-4 border-t border-[#e4e4e7] bg-[#fafafa] shrink-0 safe-bottom flex gap-2">
