@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { Calendar, Phone, Globe, ChevronDown, Send, User, Info, CheckCircle2, Mail, RotateCcw, UserPlus, MessageCircle, ArrowRightLeft } from 'lucide-react';
+import { Calendar, Phone, Globe, ChevronDown, Send, User, Info, CheckCircle2, Mail, RotateCcw, UserPlus, MessageCircle, ArrowRightLeft, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -9,7 +9,7 @@ import { isLeadOwner, getLeadOwnerName } from '../utils/leadAccess';
 
 export default function EnquiryForm() {
   const { currentUser, hasPermission } = useAuth();
-  const { addLead, addTeacherEnquiry, logReEnquiry, addContactAttemptToLead, requestLeadHandoff, leads, leadSources, grades, subjects, syllabi } = useData();
+  const { addLead, addTeacherEnquiry, logReEnquiry, addContactAttemptToLead, requestLeadHandoff, leads, teacherEnquiries, leadSources, grades, subjects, syllabi } = useData();
   const navigate = useNavigate();
 
   const canManageDuplicateLead = (lead: Lead) =>
@@ -37,7 +37,7 @@ export default function EnquiryForm() {
     isTeacherEnquiry: false
   });
 
-  const [duplicationStatus, setDuplicationStatus] = useState<null | 'YES' | 'NO'>(null);
+  const [duplicationStatus, setDuplicationStatus] = useState<null | 'YES' | 'NO' | 'TEACHER'>(null);
   const [duplicateLead, setDuplicateLead] = useState<Lead | null>(null);
   const [duplicateIntent, setDuplicateIntent] = useState<null | 'reenquiry' | 'sibling'>(null);
   const [phoneStepComplete, setPhoneStepComplete] = useState(false);
@@ -126,6 +126,18 @@ export default function EnquiryForm() {
   const handlePhoneContinue = (e?: { preventDefault?: () => void }) => {
     e?.preventDefault?.();
     if (!validatePhone()) return;
+
+    const fullInputCleaned = getFullPhoneDigits();
+    const isTeacher = teacherEnquiries.find(te => te.phone.replace(/\D/g, '') === fullInputCleaned);
+    
+    if (isTeacher) {
+      setDuplicationStatus('TEACHER');
+      setDuplicateLead(null);
+      setDuplicateIntent(null);
+      setSelectedExistingLeadId(null);
+      setPhoneStepComplete(true);
+      return;
+    }
 
     const matches = findDuplicateLeads();
     if (matches.length > 0) {
@@ -441,6 +453,26 @@ export default function EnquiryForm() {
                         {errors.phone && <p className="text-red-500 text-xs font-bold mt-2">{errors.phone}</p>}
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {duplicationStatus === 'TEACHER' && (
+                  <div className="mt-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-800 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center gap-2 mb-2 font-black">
+                      <ShieldAlert size={18} className="text-red-600" />
+                      Teacher Enquiry Detected
+                    </div>
+                    <p className="text-sm font-medium">This number is marked as a teacher. You cannot add it as a lead.</p>
+                    <button
+                      onClick={() => {
+                        setFormData({ ...formData, phone: '' });
+                        setDuplicationStatus(null);
+                        setPhoneStepComplete(false);
+                      }}
+                      className="mt-4 w-full py-2.5 text-sm font-bold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-colors"
+                    >
+                      Enter Different Number
+                    </button>
                   </div>
                 )}
 

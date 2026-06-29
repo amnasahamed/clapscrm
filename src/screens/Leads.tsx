@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import type React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ChevronDown, ChevronRight, Info, ArrowUpDown, LayoutGrid, List as ListIcon, Phone, MessageCircle, Star, Trash2, X, CheckSquare, Video, MoreHorizontal, ArrowRightLeft, UserCog, Check, Ban, Plus, Pencil, Download, History, Zap } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, Info, ArrowUpDown, LayoutGrid, List as ListIcon, Phone, MessageCircle, Star, Trash2, X, CheckSquare, Video, MoreHorizontal, ArrowRightLeft, UserCog, Check, Ban, Plus, Pencil, Download, History, Zap, GraduationCap } from 'lucide-react';
 import { Lead } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
@@ -178,7 +178,7 @@ export default function Leads() {
   const { staffNames } = useStaff();
   const {
     leads, updateLead, deleteLead, whatsappTemplates, addContactAttemptToLead, addNoteToLead,
-    incrementLeadFollowUp,
+    incrementLeadFollowUp, markAsTeacher,
     leadTransfers, createLeadTransfer, acceptLeadTransfer, rejectLeadTransfer,
     cancelLeadTransfer, reassignLead, leadSources, grades, subjects, syllabi
   } = useData();
@@ -1306,6 +1306,20 @@ export default function Leads() {
                   <ChevronRight size={16} className="text-[#d4d4d8]" />
                 </button>
               )}
+              {canEditLead(selectedMobileLead) && (
+                <button
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to mark this lead as a Teacher Enquiry? It will be removed from your active pipeline.")) {
+                      markAsTeacher(selectedMobileLead.id);
+                      setSelectedMobileLead(null);
+                    }
+                  }}
+                  className="w-full py-4 px-4 text-[#18181b] bg-transparent font-bold flex items-center gap-3 active:bg-[#fafafa] transition-colors text-sm text-left border-t border-[#e4e4e7]/50"
+                >
+                  <GraduationCap size={18} className="text-purple-500" />
+                  <span className="flex-1 text-purple-700">Mark as Teacher</span>
+                </button>
+              )}
               {hasPermission('reassign_leads') && (
                 <button
                   onClick={() => { setReassigningLead(selectedMobileLead); setSelectedMobileLead(null); }}
@@ -1342,7 +1356,7 @@ function SortButton({ field, label, currentSort, order, onClick }: any) {
   );
 }
 
-function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onDelete, onUpdateStatus, onToggleHot, canDelete, canEditStatus, canEdit, onWhatsApp, onScheduleDemo, showOwner, canTransfer, canReassign, onTransfer, onReassign, onEdit, onQuickEdit, onIncrementFollowUp, onInterestChange }: any) {
+function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onDelete, onUpdateStatus, onToggleHot, canDelete, canEditStatus, canEdit, onWhatsApp, onScheduleDemo, showOwner, canTransfer, canReassign, onTransfer, onReassign, onEdit, onQuickEdit, onIncrementFollowUp, onInterestChange, onMarkAsTeacher }: any) {
   return (
     <div id={id} className={`bg-white border rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center group cursor-pointer transition-colors premium-hover ${isSelected ? 'border-[#18181b] bg-[#fafafa]' : 'border-[#e4e4e7]'} ${isHighlighted ? 'ring-2 ring-[#18181b]/30 bg-amber-50/40' : ''}`}>
       <div className="hidden md:flex col-span-1 items-center">
@@ -1441,6 +1455,11 @@ function LeadCardList({ id, isHighlighted, lead, isSelected, onToggleSelect, onD
         {canReassign && (
           <button onClick={onReassign} className="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors interactive-element" title="Reassign Lead">
             <UserCog size={16} />
+          </button>
+        )}
+        {canEdit && (
+          <button onClick={onMarkAsTeacher} className="p-2 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors interactive-element" title="Mark as Teacher">
+            <GraduationCap size={16} />
           </button>
         )}
         <button onClick={onScheduleDemo} className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors interactive-element" title="Schedule Demo">

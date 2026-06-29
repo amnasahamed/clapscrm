@@ -13,6 +13,7 @@ import Analytics from './screens/Analytics';
 import EnquiryForm from './screens/EnquiryForm';
 import Joined from './screens/Joined';
 import Settings from './screens/Settings';
+import Teachers from './screens/Teachers';
 import Admin from './screens/Admin';
 import LoginScreen from './screens/LoginScreen';
 
@@ -92,6 +93,7 @@ function MainLayout() {
     { path: '/demos', label: 'Demos', icon: Video, show: true },
     { path: '/settings', label: 'Settings', icon: LucideSettings, show: true },
     { path: '/admin', label: 'Admin', icon: ShieldCheck, show: hasPermission('admin_dashboard') },
+    { path: '/teachers', label: 'Teachers', icon: GraduationCap, show: hasPermission('manage_staff') },
     { path: '/analytics', label: 'Insights', icon: BarChart3, show: hasPermission('view_analytics') },
   ].filter(item => item.show), [hasPermission]);
 
@@ -105,6 +107,7 @@ function MainLayout() {
     switch (location.pathname) {
       case '/': return 'ClapsCRM';
       case '/admin': return 'Admin';
+      case '/teachers': return 'Teachers';
       case '/leads': return 'Leads';
       case '/joined': return 'Joined Students';
       case '/demos': return 'Demos';
@@ -360,6 +363,7 @@ function MainLayout() {
               <Route path="/analytics" element={<ProtectedRoute><PageTransition routeKey="analytics"><Analytics /></PageTransition></ProtectedRoute>} />
               <Route path="/enquiry" element={<ProtectedRoute><PageTransition routeKey="enquiry"><EnquiryForm /></PageTransition></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><PageTransition routeKey="settings"><Settings /></PageTransition></ProtectedRoute>} />
+              <Route path="/teachers" element={<ProtectedRoute requireRole="admin"><PageTransition routeKey="teachers"><Teachers /></PageTransition></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AnimatePresence>

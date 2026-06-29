@@ -36,6 +36,7 @@ interface DataContextType {
 
   addLead: (lead: Omit<Lead, 'id'>) => { success: boolean; error?: string };
   addTeacherEnquiry: (enquiry: Omit<TeacherEnquiry, 'id'>) => { success: boolean; error?: string };
+  markAsTeacher: (leadId: string) => boolean;
   updateLead: (id: string, updates: Partial<Lead>) => void;
   deleteLead: (id: string) => void;
   
@@ -123,6 +124,10 @@ function loadData(): DataStorage {
       const leads = Array.isArray(parsed.leads) ? parsed.leads.map(l => ({...l, date: normalizeDate(l.date)})) : MOCK_LEADS;
       const demos = Array.isArray(parsed.demos) ? parsed.demos.map(d => ({...d, date: normalizeDate(d.date)})) : MOCK_DEMOS;
       
+      const fiveYearsAgoMs = Date.now() - 5 * 365 * 24 * 60 * 60 * 1000;
+      let loadedTeachers = Array.isArray(parsed.teacherEnquiries) ? parsed.teacherEnquiries : [];
+      loadedTeachers = loadedTeachers.filter((t: any) => new Date(t.date).getTime() > fiveYearsAgoMs);
+
       return {
         leads,
         demos,
@@ -130,7 +135,7 @@ function loadData(): DataStorage {
         whatsappTemplates: parsed.whatsappTemplates || defaultTemplates,
         accessLogs: Array.isArray(parsed.accessLogs) ? parsed.accessLogs : [],
         leadTransfers: Array.isArray(parsed.leadTransfers) ? parsed.leadTransfers : [],
-        teacherEnquiries: Array.isArray(parsed.teacherEnquiries) ? parsed.teacherEnquiries : [],
+        teacherEnquiries: loadedTeachers,
         leadSources: Array.isArray(parsed.leadSources) && parsed.leadSources.length > 0
           ? parsed.leadSources
           : [...DEFAULT_LEAD_SOURCES],
@@ -291,6 +296,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
       demos: prev.demos.filter(d => d.leadId !== id),
       reminders: prev.reminders.filter(r => r.leadId !== id)
     }));
+  };
+
+  const markAsTeacher = (leadId: string): boolean => {
+    const lead = data.leads.find(l => l.id === leadId);
+    if (!lead) return false;
+
+    const newTeacher: TeacherEnquiry = {
+      id: generateId(),
+      phone: lead.phone,
+      date: new Date().toISOString().split('T')[0],
+      source: lead.source,
+      staffName: lead.assignedTo || lead.createdBy || 'Unknown',
+      notes: 'Marked from existing lead.'
+    };
+
+    setData(prev => ({
+      ...prev,
+      leads: prev.leads.filter(l => l.id !== leadId),
+      demos: prev.demos.filter(d => d.leadId !== leadId),
+      reminders: prev.reminders.filter(r => r.leadId !== leadId),
+      teacherEnquiries: [newTeacher, ...prev.teacherEnquiries]
+    }));
+    return true;
   };
 
   const addDemo = (demoData: Omit<Demo, 'id'>) => {
@@ -793,7 +821,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       grades: data.grades,
       subjects: data.subjects,
       syllabi: data.syllabi,
-      addLead, addTeacherEnquiry, updateLead, deleteLead,
+      addLead, addTeacherEnquiry, markAsTeacher, updateLead, deleteLead,
       addDemo, updateDemo, deleteDemo,
       addNoteToLead, updateNoteInLead, deleteNoteFromLead,
       addContactAttemptToLead, incrementLeadFollowUp, logReEnquiry, updateWhatsAppTemplate,
