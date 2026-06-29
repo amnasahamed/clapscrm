@@ -21,16 +21,16 @@ const LOST_REASONS = [
 
 export default function LostReasonModal({ isOpen, lead, onClose, onConfirm }: LostReasonModalProps) {
   const [reason, setReason] = useState('');
-  const [customReason, setCustomReason] = useState('');
+  const [comments, setComments] = useState('');
 
   if (!isOpen || !lead) return null;
 
   const handleConfirm = () => {
-    const finalReason = reason === 'Other' ? customReason : reason;
-    if (!finalReason.trim()) return;
+    if (!reason || !comments.trim()) return;
+    const finalReason = `${reason} - ${comments.trim()}`;
     onConfirm(lead.id, finalReason);
     setReason('');
-    setCustomReason('');
+    setComments('');
   };
 
   return (
@@ -59,31 +59,35 @@ export default function LostReasonModal({ isOpen, lead, onClose, onConfirm }: Lo
             </button>
           </div>
 
-          <div className="p-4 sm:p-6 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {LOST_REASONS.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setReason(r)}
-                  className={`p-3 rounded-xl border text-sm font-semibold transition-all text-left ${
-                    reason === r
-                      ? 'bg-red-50 border-red-200 text-red-700'
-                      : 'bg-white border-[#e4e4e7] text-[#71717a] hover:bg-[#f4f4f5]'
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
+          <div className="p-4 sm:p-6 space-y-5">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-widest text-[#a1a1aa] block mb-2">Category</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {LOST_REASONS.map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setReason(r)}
+                    className={`p-3 rounded-xl border text-sm font-semibold transition-all text-left ${
+                      reason === r
+                        ? 'bg-red-50 border-red-200 text-red-700'
+                        : 'bg-white border-[#e4e4e7] text-[#71717a] hover:bg-[#f4f4f5]'
+                    }`}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {reason === 'Other' && (
+            <div>
+              <label className="text-xs font-bold uppercase tracking-widest text-[#a1a1aa] block mb-2">Comments (Required)</label>
               <textarea
-                value={customReason}
-                onChange={(e) => setCustomReason(e.target.value)}
-                placeholder="Please specify..."
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+                placeholder="Please provide more details on why this lead was lost..."
                 className="w-full p-3 bg-white border border-[#e4e4e7] rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none resize-none h-24"
               />
-            )}
+            </div>
           </div>
 
           <div className="p-4 sm:p-6 border-t border-[#f4f4f5] bg-[#fafafa] flex gap-3">
@@ -95,7 +99,7 @@ export default function LostReasonModal({ isOpen, lead, onClose, onConfirm }: Lo
             </button>
             <button
               onClick={handleConfirm}
-              disabled={!reason || (reason === 'Other' && !customReason.trim())}
+              disabled={!reason || !comments.trim()}
               className="flex-1 py-3 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <Check size={18} /> Confirm Lost
