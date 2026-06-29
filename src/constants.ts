@@ -119,7 +119,7 @@ export const MOCK_DEMOS: Demo[] = [
     teacher: 'Ms. Anjali Singh',
     subject: 'Physics',
     class: '8th ICSE',
-    status: 'COMPLETED',
+    status: 'CONVERTED',
     createdBy: 'Sarah 👩🏻‍💼'
   },
   {

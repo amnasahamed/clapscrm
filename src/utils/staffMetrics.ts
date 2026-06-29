@@ -56,7 +56,7 @@ export function computeStaffMetrics(
     const lost = sLeads.filter(l => l.status === 'LOST').length;
     const activeLeads = sLeads.filter(l => l.status === 'NEW' || l.status === 'IN PROGRESS').length;
     const demosScheduled = sDemos.filter(d => d.status === 'SCHEDULED' || d.status === 'RESCHEDULED').length;
-    const demosCompleted = sDemos.filter(d => d.status === 'COMPLETED').length;
+    const demosCompleted = sDemos.filter(d => d.status === 'CONVERTED').length;
 
     const conversionRate = sLeads.length ? (joins / sLeads.length) * 100 : 0;
     const demoCompletionRate = sDemos.length ? (demosCompleted / sDemos.length) * 100 : 0;

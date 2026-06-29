@@ -338,7 +338,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       let nextLeads = prev.leads;
 
       // If demo is marked as completed/attended, advance lead to post-demo phase
-      if (demo.leadId && updates.status && (updates.status === 'COMPLETED' || updates.status === 'ATTENDED')) {
+      if (demo.leadId && updates.status && (updates.status === 'CONVERTED' || updates.status === 'ATTENDED')) {
         nextLeads = prev.leads.map(l => {
           if (l.id !== demo.leadId) return l;
           if (l.isPostDemo) return l; // Already in post-demo phase

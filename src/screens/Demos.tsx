@@ -54,7 +54,7 @@ const getRelativeDateHeader = (dateStr: string) => {
 
 const STATUS_LABELS: Record<Demo['status'], string> = {
   SCHEDULED: 'Scheduled',
-  COMPLETED: 'Completed',
+  CONVERTED: 'Converted',
   CANCELLED: 'Cancelled',
   RESCHEDULED: 'Rescheduled',
   NO_SHOW: 'No Show',
@@ -67,7 +67,7 @@ export default function Demos() {
   const { demos, updateDemo, deleteDemo, leads } = useData();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'AGENDA' | 'KANBAN' | 'CALENDAR'>('AGENDA');
+  const [viewMode, setViewMode] = useState<'PENDING' | 'POST_DEMO' | 'COMPLETED' | 'CALENDAR'>('PENDING');
   const isMobile = useIsMobile();
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -120,7 +120,7 @@ export default function Demos() {
   const todaySummary = useMemo(() => {
     const todayDemos = viewableDemos.filter(d => d.date === todayStr);
     const scheduled = todayDemos.filter(d => d.status === 'SCHEDULED' || d.status === 'RESCHEDULED').length;
-    const completed = todayDemos.filter(d => d.status === 'COMPLETED').length;
+    const completed = todayDemos.filter(d => d.status === 'CONVERTED' || d.status === 'JOINED').length;
     const cancelled = todayDemos.filter(d => d.status === 'CANCELLED' || d.status === 'NO_SHOW').length;
     return { scheduled, completed, cancelled, total: todayDemos.length };
   }, [viewableDemos, todayStr]);
@@ -131,33 +131,32 @@ export default function Demos() {
     if (viewMode === 'CALENDAR') {
       const selectedStr = formatDateForInput(selectedDate);
       filtered = filtered.filter(d => d.date === selectedStr);
-    } else {
+    } else if (viewMode === 'PENDING') {
+      const todayDate = new Date();
+      const tom = new Date(todayDate);
+      tom.setDate(tom.getDate() + 1);
+      const tomStr = formatDateForInput(tom);
+      // Pending shows today and tomorrow demos that are SCHEDULED or RESCHEDULED
+      filtered = filtered.filter(d => 
+        (d.date === todayStr || d.date === tomStr) && 
+        (d.status === 'SCHEDULED' || d.status === 'RESCHEDULED')
+      );
+    } else if (viewMode === 'POST_DEMO') {
+      // Post-demo shows ATTENDED or NO_SHOW demos (need follow-up)
+      filtered = filtered.filter(d => d.status === 'ATTENDED' || d.status === 'NO_SHOW');
+    } else if (viewMode === 'COMPLETED') {
+      // Completed shows JOINED or CONVERTED demos
+      filtered = filtered.filter(d => d.status === 'JOINED' || d.status === 'CONVERTED');
+    }
+
+    if (viewMode !== 'CALENDAR' && viewMode !== 'PENDING' && viewMode !== 'POST_DEMO' && viewMode !== 'COMPLETED') {
+      // Fallback filtering if needed
       if (filters.status.length > 0) {
         filtered = filtered.filter(d => filters.status.includes(d.status));
       }
       if (filters.teacher !== 'ALL') filtered = filtered.filter(d => d.teacher === filters.teacher);
       if (filters.studentClass !== 'ALL') filtered = filtered.filter(d => d.class === filters.studentClass);
       if (filters.subject !== 'ALL') filtered = filtered.filter(d => d.subject === filters.subject);
-
-      if (filters.dateRange !== 'ALL') {
-        const todayDate = new Date();
-        if (filters.dateRange === 'TODAY') {
-          filtered = filtered.filter(d => d.date === todayStr);
-        } else if (filters.dateRange === 'TOMORROW') {
-          const tom = new Date(todayDate);
-          tom.setDate(tom.getDate() + 1);
-          filtered = filtered.filter(d => d.date === formatDateForInput(tom));
-        } else if (filters.dateRange === 'THIS_WEEK') {
-          const startOfWeek = new Date(todayDate);
-          startOfWeek.setDate(todayDate.getDate() - todayDate.getDay());
-          const endOfWeek = new Date(todayDate);
-          endOfWeek.setDate(todayDate.getDate() - todayDate.getDay() + 6);
-          filtered = filtered.filter(d => {
-            const dDate = new Date(d.date);
-            return dDate >= startOfWeek && dDate <= endOfWeek;
-          });
-        }
-      }
     }
 
     if (searchQuery) {
@@ -210,7 +209,9 @@ export default function Demos() {
   const getStatusColor = (status: Demo['status']) => {
     switch (status) {
       case 'SCHEDULED': return 'text-blue-700 bg-blue-50 border-blue-100';
-      case 'COMPLETED': return 'text-green-700 bg-green-50 border-green-100';
+      case 'CONVERTED': return 'text-green-700 bg-green-50 border-green-100';
+      case 'JOINED': return 'text-emerald-700 bg-emerald-50 border-emerald-100';
+      case 'ATTENDED': return 'text-teal-700 bg-teal-50 border-teal-100';
       case 'CANCELLED': return 'text-red-700 bg-red-50 border-red-100';
       case 'RESCHEDULED': return 'text-purple-700 bg-purple-50 border-purple-100';
       case 'NO_SHOW': return 'text-orange-700 bg-orange-50 border-orange-100';
@@ -221,7 +222,9 @@ export default function Demos() {
   const getStatusDotColor = (status: Demo['status']) => {
     switch (status) {
       case 'SCHEDULED': return 'bg-blue-500';
-      case 'COMPLETED': return 'bg-green-500';
+      case 'CONVERTED': return 'bg-green-500';
+      case 'JOINED': return 'bg-emerald-500';
+      case 'ATTENDED': return 'bg-teal-500';
       case 'CANCELLED': return 'bg-red-500';
       case 'RESCHEDULED': return 'bg-purple-500';
       case 'NO_SHOW': return 'bg-orange-500';
@@ -302,7 +305,7 @@ export default function Demos() {
                 <div className="bg-white rounded-2xl overflow-hidden divide-y divide-[#e4e4e7] sm:rounded-none sm:divide-y-0 sm:bg-transparent">
                   {isPending && (
                     <>
-                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'COMPLETED'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-green-600 hover:bg-green-50 flex items-center gap-2">
+                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'CONVERTED'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-green-600 hover:bg-green-50 flex items-center gap-2">
                         <CheckCircle size={18} className="sm:w-3.5 sm:h-3.5" /> Mark Complete
                       </button>
                       <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'CANCELLED'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
@@ -357,7 +360,7 @@ export default function Demos() {
             icon: <CheckCircle size={22} />,
             label: 'Complete',
             colorClass: 'bg-green-500 text-white',
-            onAction: () => handleStatusChange(demo.id, 'COMPLETED')
+            onAction: () => handleStatusChange(demo.id, 'CONVERTED')
           } : undefined}
           rightAction={isPending ? {
             icon: <XCircle size={22} />,
@@ -429,40 +432,44 @@ export default function Demos() {
 
   const KANBAN_COLUMNS: { key: Demo['status']; label: string; color: string }[] = [
     { key: 'SCHEDULED', label: 'Upcoming', color: 'bg-blue-500' },
-    { key: 'COMPLETED', label: 'Completed', color: 'bg-green-500' },
+    { key: 'CONVERTED', label: 'Converted', color: 'bg-green-500' },
     { key: 'CANCELLED', label: 'Cancelled', color: 'bg-red-500' },
   ];
 
   return (
     <div className="flex flex-col relative pb-24 space-y-5">
 
-      {/* Today's summary KPIs */}
-      <div className="flex gap-3 overflow-x-auto no-scrollbar scroll-fade-x pb-1 snap-x snap-mandatory">
-        <SummaryChip icon={<Clock size={16} className="text-blue-500" />} label="Today" value={todaySummary.total} />
-        <SummaryChip icon={<Video size={16} className="text-indigo-500" />} label="Scheduled" value={todaySummary.scheduled} />
-        <SummaryChip icon={<CheckCircle size={16} className="text-green-500" />} label="Completed" value={todaySummary.completed} />
-        <SummaryChip icon={<XCircle size={16} className="text-red-500" />} label="Cancelled" value={todaySummary.cancelled} />
+
+
+      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+        <div>
+          <h2 className="text-sm font-black text-blue-800">Primary Goal: Lead Parents to a Demo</h2>
+          <p className="text-xs font-medium text-blue-600 mt-0.5">Ensure every scheduled demo converts into an admission.</p>
+        </div>
+        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+          <Video size={20} />
+        </div>
       </div>
 
-      {/* Quick Date Filters */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 px-1">
-        {['TODAY', 'TOMORROW', 'THIS_WEEK', 'ALL'].map((range) => {
-          const isActive = filters.dateRange === range;
-          const label = range === 'ALL' ? 'All Demos' : range.replace('_', ' ');
-          return (
-            <button
-              key={range}
-              onClick={() => setFilters({ ...filters, dateRange: range as any })}
-              className={`px-4 py-2 min-h-[40px] text-xs font-bold rounded-full transition-all border whitespace-nowrap ${
-                isActive
-                  ? 'bg-[#18181b] text-white border-[#18181b] shadow-sm'
-                  : 'bg-white text-[#71717a] border-[#e4e4e7] active:bg-[#f4f4f5]'
-              }`}
-            >
-              {label}
-            </button>
-          );
-        })}
+        {[
+          { id: 'PENDING', label: 'Pending Demos' },
+          { id: 'POST_DEMO', label: 'Follow Up' },
+          { id: 'COMPLETED', label: 'Completed' },
+          { id: 'CALENDAR', label: 'Calendar' }
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setViewMode(tab.id as any)}
+            className={`px-4 py-2 min-h-[40px] text-xs font-bold rounded-full transition-all border whitespace-nowrap ${
+              viewMode === tab.id
+                ? 'bg-[#18181b] text-white border-[#18181b] shadow-sm'
+                : 'bg-white text-[#71717a] border-[#e4e4e7] active:bg-[#f4f4f5]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Search + filter + view controls */}
@@ -508,7 +515,7 @@ export default function Demos() {
           </button>
 
           <div className="flex bg-[#f4f4f5] p-1 rounded-xl border border-[#e4e4e7]">
-            <ViewToggle active={viewMode === 'AGENDA'} onClick={() => setViewMode('AGENDA')} icon={<List size={16} />} label="List" />
+            <ViewToggle active={(viewMode === 'PENDING' || viewMode === 'POST_DEMO' || viewMode === 'COMPLETED')} onClick={() => setViewMode('AGENDA')} icon={<List size={16} />} label="List" />
             <ViewToggle active={viewMode === 'KANBAN'} onClick={() => setViewMode('KANBAN')} icon={<Columns size={16} />} label="Board" />
             <ViewToggle active={viewMode === 'CALENDAR'} onClick={() => setViewMode('CALENDAR')} icon={<CalendarIcon size={16} />} label="Cal" hideLabelOnMobile />
           </div>
@@ -537,7 +544,7 @@ export default function Demos() {
 
       {/* Main content */}
       <div>
-        {viewMode === 'AGENDA' && (
+        {(viewMode === 'PENDING' || viewMode === 'POST_DEMO' || viewMode === 'COMPLETED') && (
           <div className="space-y-6 pb-12">
             {groupedDemos.length === 0 ? (
               <EmptyState

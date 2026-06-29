@@ -304,6 +304,9 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
                       className="w-full pl-10 pr-4 py-3 bg-white border border-[#e4e4e7] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all" 
                     />
                   </div>
+                  <p className="text-[10px] font-medium text-[#71717a] ml-1 mt-1 leading-tight">
+                    * Teacher is assigned based on time and availability, and may not match the parent's initially requested slot.
+                  </p>
                 </div>
 
                 <div className="space-y-1.5">

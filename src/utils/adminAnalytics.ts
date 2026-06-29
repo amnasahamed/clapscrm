@@ -30,7 +30,7 @@ export interface PeriodComparison {
 function computeKpis(leads: Lead[], demos: Demo[]): PeriodKpis {
   const joinedLeads = leads.filter(l => l.status === 'JOINED');
   const joins = joinedLeads.length;
-  const demosCompleted = demos.filter(d => d.status === 'COMPLETED').length;
+  const demosCompleted = demos.filter(d => d.status === 'CONVERTED').length;
   const conversionRate = leads.length ? Number(((joins / leads.length) * 100).toFixed(1)) : 0;
   const collection = sumJoinCollection(joinedLeads) + demosCompleted * DEMO_COLLECTION_VALUE;
 
@@ -204,7 +204,7 @@ export function computeSourcePerformance(
       const lost = sourceLeads.filter(l => l.status === 'LOST').length;
       const leadIds = new Set(sourceLeads.map(l => l.id));
       const demosCompleted = filteredDemos.filter(
-        d => d.status === 'COMPLETED' && leadIds.has(d.leadId || '')
+        d => d.status === 'CONVERTED' && leadIds.has(d.leadId || '')
       ).length;
 
       return {

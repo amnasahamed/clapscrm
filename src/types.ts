@@ -143,7 +143,7 @@ export interface Demo {
   teacher: string;
   subject: string;
   class: string;
-  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW' | 'RESCHEDULED' | 'ATTENDED' | 'JOINED';
+  status: 'SCHEDULED' | 'CONVERTED' | 'CANCELLED' | 'NO_SHOW' | 'RESCHEDULED' | 'ATTENDED' | 'JOINED';
   meetLink?: string;
   createdBy?: string;
   schedulingNotes?: string;
