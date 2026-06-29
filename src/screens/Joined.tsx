@@ -138,41 +138,47 @@ export default function Joined() {
             />
           </div>
         </div>
-        <div className="divide-y divide-[#e4e4e7]">
-          {filteredLeads.length > 0 ? filteredLeads.map(lead => (
-            <div key={lead.id} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#f4f4f5]/50 transition-colors">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center shrink-0 border border-indigo-100">
-                  <span className="text-lg font-bold text-indigo-600">{lead.name.charAt(0).toUpperCase()}</span>
-                </div>
-                <div>
-                  <h4 className="font-bold text-[#18181b]">{lead.name}</h4>
-                  <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-[#71717a] font-medium">
-                    <span className="flex items-center gap-1"><Phone size={12} /> {lead.phone}</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1"><MapPin size={12} /> {lead.country || 'Unknown'}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <span className="px-2 py-1 bg-[#f4f4f5] text-[#71717a] rounded-md text-[10px] font-bold uppercase tracking-wider">
-                      {lead.source}
-                    </span>
-                    <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                      {lead.assignedTo || lead.createdBy || 'Unassigned'}
-                    </span>
+        <div className="p-4 sm:p-6 bg-[#fafafa]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredLeads.length > 0 ? filteredLeads.map(lead => (
+              <div key={lead.id} className="bg-white border border-[#e4e4e7] rounded-[20px] p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0 border border-indigo-100">
+                      <span className="text-sm font-bold text-indigo-600">{lead.name.charAt(0).toUpperCase()}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#18181b] line-clamp-1">{lead.name}</h4>
+                      <div className="flex items-center gap-1 text-[11px] text-[#71717a] font-medium mt-0.5">
+                        <Phone size={10} /> {lead.phone}
+                      </div>
+                    </div>
                   </div>
                 </div>
+                
+                <div className="space-y-4">
+                  <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100">
+                    <div className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-1">Amount Collected</div>
+                    <div className="text-2xl font-black text-emerald-600">₹{(lead.amountCollected || 800).toLocaleString()}</div>
+                  </div>
+                  
+                  <div className="bg-[#f4f4f5]/50 rounded-xl p-3 border border-[#e4e4e7]">
+                    <div className="text-[10px] font-black text-[#71717a] uppercase tracking-widest mb-1">Ad Source</div>
+                    <div className="text-sm font-bold text-[#18181b]">{lead.source}</div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-[#e4e4e7] flex items-center justify-between text-[11px] text-[#a1a1aa] font-medium">
+                  <span>Joined: {lead.joinedDate ? new Date(lead.joinedDate).toLocaleDateString() : 'Unknown'}</span>
+                  <span>{lead.assignedTo || lead.createdBy || 'Unassigned'}</span>
+                </div>
               </div>
-              <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1 bg-[#f4f4f5] sm:bg-transparent p-3 sm:p-0 rounded-xl sm:rounded-none">
-                <div className="text-xs font-bold text-[#71717a] uppercase tracking-wider">Collected</div>
-                <div className="text-lg font-black text-emerald-600">₹{(lead.amountCollected || 800).toLocaleString()}</div>
-                <div className="text-[10px] text-[#a1a1aa] font-medium mt-1">Joined: {lead.joinedDate ? new Date(lead.joinedDate).toLocaleDateString() : 'Unknown'}</div>
+            )) : (
+              <div className="col-span-full p-12 text-center text-[#a1a1aa] font-medium bg-white rounded-[20px] border border-dashed border-[#d4d4d8]">
+                No joined students found.
               </div>
-            </div>
-          )) : (
-            <div className="p-8 text-center text-[#a1a1aa] font-medium">
-              No joined students found.
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
