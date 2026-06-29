@@ -52,6 +52,8 @@ export const STATUS_EMOJIS: Record<LeadStatus, string> = {
   'LOST': '❌',
 };
 
+const GCC_COUNTRIES = ['AE', 'SA', 'QA', 'KW', 'BH', 'OM'];
+
 function FollowUpTracker({ followUpCount, isPostDemo, onIncrement }: { followUpCount: number; isPostDemo?: boolean; onIncrement: () => void }) {
   const count = followUpCount || 0;
   const phaseName = isPostDemo ? 'Post-Demo Follow-ups' : 'Pre-Demo Follow-ups';
@@ -545,9 +547,12 @@ export default function Leads() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <h4 className="font-black tracking-tight text-[#18181b] truncate text-base">{lead.name}</h4>
+                      <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                        <h4 className="font-black tracking-tight text-[#18181b] truncate text-base">{lead.phone}</h4>
                         <span className="text-sm">{getCountryFlag(lead.country)}</span>
+                        {lead.country && GCC_COUNTRIES.includes(lead.country) && (
+                          <span className="bg-purple-100 text-purple-700 text-[8px] font-black uppercase px-2 py-0.5 rounded-full ring-1 ring-purple-200 shrink-0">Priority</span>
+                        )}
                         {lead.isHot && <Star size={14} className="text-amber-500 shrink-0" fill="currentColor" />}
                         {lead.interestStatus && (
                           <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 ${
@@ -559,11 +564,21 @@ export default function Leads() {
                           </span>
                         )}
                       </div>
-                      <button onClick={(e) => { e.stopPropagation(); setSelectedMobileLead(lead); }} className="p-2 -mr-2 -mt-1 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#a1a1aa] active:bg-[#f4f4f5] rounded-xl shrink-0">
-                        <MoreHorizontal size={20} />
-                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {canEditLead(lead) && (
+                          <button onClick={(e) => { e.stopPropagation(); setQuickEditingLead(lead); }} className="p-1.5 text-blue-600 bg-blue-50 active:bg-blue-100 rounded-lg shrink-0 flex items-center gap-1">
+                            <Zap size={14} />
+                            <span className="text-[10px] font-bold">Quick Edit</span>
+                          </button>
+                        )}
+                        <button onClick={(e) => { e.stopPropagation(); setSelectedMobileLead(lead); }} className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center text-[#a1a1aa] active:bg-[#f4f4f5] rounded-xl shrink-0">
+                          <MoreHorizontal size={20} />
+                        </button>
+                      </div>
                     </div>
-                    <p className="text-xs font-semibold text-[#71717a] truncate mb-2">{lead.phone} • {lead.class} • {lead.source}</p>
+                    <p className="text-xs font-semibold text-[#71717a] truncate mb-2">
+                      {lead.name !== lead.phone ? `${lead.name} • ` : ''}{lead.class} • {lead.source}
+                    </p>
                     <div className="flex items-center justify-between mt-auto">
                       <span className="text-[11px] font-bold text-[#a1a1aa]">{lead.date}</span>
                       {lead.status === 'IN PROGRESS' && (
@@ -789,9 +804,12 @@ export default function Leads() {
                                     </div>
 
                                     <div className="flex justify-between items-start mb-2 pr-6">
-                                      <div className="flex items-center gap-2 min-w-0">
-                                        <h4 className="font-bold text-[#18181b] truncate">{lead.name}</h4>
+                                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                                        <h4 className="font-bold text-[#18181b] truncate">{lead.phone}</h4>
                                         <span className="text-sm">{getCountryFlag(lead.country)}</span>
+                                        {lead.country && GCC_COUNTRIES.includes(lead.country) && (
+                                          <span className="bg-purple-100 text-purple-700 text-[8px] font-black uppercase px-2 py-0.5 rounded-full ring-1 ring-purple-200 shrink-0">Priority</span>
+                                        )}
                                         {lead.isHot && <span className="bg-amber-100 text-amber-600 text-[8px] font-black uppercase px-2 py-0.5 rounded-full ring-1 ring-amber-200 shrink-0">Hot</span>}
                                         {lead.interestStatus && (
                                           <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 ${
@@ -804,7 +822,9 @@ export default function Leads() {
                                         )}
                                       </div>
                                     </div>
-                                    <p className="text-xs font-semibold text-[#71717a] mb-3 truncate">{lead.phone} • {lead.class} • {lead.source}</p>
+                                    <p className="text-[11px] font-semibold text-[#71717a] mb-3 truncate">
+                                      {lead.name !== lead.phone ? `${lead.name} • ` : ''}{lead.class} • {lead.source}
+                                    </p>
 
                                     <div className="mb-3" onClick={(e) => e.stopPropagation()}>
                                       <LeadStatusControl
@@ -824,7 +844,13 @@ export default function Leads() {
                                     
                                     <div className="flex items-center justify-between pt-3 border-t border-[#f4f4f5]">
                                       <div className="flex items-center gap-2">
-                                        {hasPermission('view_all_leads') && lead.assignedTo && lead.assignedTo !== lead.createdBy && (
+                                        {canEditLead(lead) && (
+                                        <button onClick={(e) => { e.stopPropagation(); setQuickEditingLead(lead); }} className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors">
+                                          <Zap size={12} />
+                                          Quick Edit
+                                        </button>
+                                      )}
+                                      {hasPermission('view_all_leads') && lead.assignedTo && lead.assignedTo !== lead.createdBy && (
                                           <div 
                                             className="w-5 h-5 rounded-full bg-[#f4f4f5] text-[#18181b] flex items-center justify-center text-[8px] font-black shrink-0 border border-[#e4e4e7]"
                                             title={`Assigned to ${lead.assignedTo} (created by ${lead.createdBy})`}
