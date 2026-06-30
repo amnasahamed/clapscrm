@@ -7,12 +7,15 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
+import { useStaff } from '../contexts/StaffContext';
 import { Demo } from '../types';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { MOBILE_FAB_BOTTOM } from '../constants/layout';
 import ScheduleDemoModal from '../components/ScheduleDemoModal';
 import FilterDemosModal, { DemoFilters } from '../components/FilterDemosModal';
+import AssignTeacherModal from '../components/AssignTeacherModal';
+import RescheduleDemoModal from '../components/RescheduleDemoModal';
 import { exportDemosCsv } from '../utils/exporters';
 import { motion, AnimatePresence } from 'motion/react';
 import SwipeableItem from '../components/SwipeableItem';
@@ -67,8 +70,11 @@ export default function Demos() {
   const navigate = useNavigate();
   const { currentUser, hasPermission } = useAuth();
   const { demos, updateDemo, deleteDemo, leads } = useData();
+  const { staffNames } = useStaff();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [assigningDemo, setAssigningDemo] = useState<Demo | null>(null);
+  const [reschedulingDemo, setReschedulingDemo] = useState<Demo | null>(null);
   const [viewMode, setViewMode] = useState<'PENDING' | 'POST_DEMO' | 'COMPLETED' | 'CALENDAR'>('PENDING');
   const isMobile = useIsMobile();
 
@@ -318,7 +324,7 @@ export default function Demos() {
                       <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'ATTENDED'); setOpenMenuId(null); }} className="px-2 py-2.5 sm:py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl sm:rounded-md flex items-center justify-center sm:justify-start gap-1.5 transition-colors">
                         <CheckCircle size={14} /> Attended
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'RESCHEDULED'); setOpenMenuId(null); }} className="px-2 py-2.5 sm:py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl sm:rounded-md flex items-center justify-center sm:justify-start gap-1.5 transition-colors">
+                      <button onClick={(e) => { e.stopPropagation(); setReschedulingDemo(demo); setOpenMenuId(null); }} className="px-2 py-2.5 sm:py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl sm:rounded-md flex items-center justify-center sm:justify-start gap-1.5 transition-colors">
                         <Video size={14} /> Rescheduled
                       </button>
                       <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'CANCELLED'); setOpenMenuId(null); }} className="col-span-2 sm:col-span-1 px-2 py-2.5 sm:py-1.5 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 rounded-xl sm:rounded-md flex items-center justify-center sm:justify-start gap-1.5 transition-colors">
@@ -427,8 +433,7 @@ export default function Demos() {
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        const t = window.prompt('Assign Teacher (leave blank to unassign):', demo.teacher || '');
-                        if (t !== null) updateDemo(demo.id, { teacher: t.trim() });
+                        setAssigningDemo(demo);
                       }}
                       className={`text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 transition-colors interactive-element ${demo.teacher ? 'text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-100' : 'text-[#71717a] bg-[#f4f4f5] hover:bg-[#e4e4e7] border border-[#e4e4e7]'}`}
                     >
@@ -750,6 +755,22 @@ export default function Demos() {
         availableTeachers={availableTeachers}
         availableClasses={availableClasses}
         availableSubjects={availableSubjects}
+      />
+
+      <AssignTeacherModal
+        isOpen={!!assigningDemo}
+        demo={assigningDemo}
+        staffOptions={staffNames}
+        onClose={() => setAssigningDemo(null)}
+        onAssign={(demoId, teacher) => updateDemo(demoId, { teacher: teacher.trim() })}
+      />
+
+      <RescheduleDemoModal
+        isOpen={!!reschedulingDemo}
+        demo={reschedulingDemo}
+        staffOptions={staffNames}
+        onClose={() => setReschedulingDemo(null)}
+        onReschedule={(demoId, updates) => updateDemo(demoId, updates)}
       />
     </div>
   );
