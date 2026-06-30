@@ -83,9 +83,16 @@
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+.p-4.safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+.p-5.safe-bottom { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+.p-6.safe-bottom { padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
+
 .safe-top {
   padding-top: env(safe-area-inset-top, 0px);
 }
+.p-4.safe-top { padding-top: max(1rem, env(safe-area-inset-top)); }
+.p-5.safe-top { padding-top: max(1.25rem, env(safe-area-inset-top)); }
+.p-6.safe-top { padding-top: max(1.5rem, env(safe-area-inset-top)); }
 
 .premium-hover {
   @apply transition-colors duration-200 hover:border-[#d4d4d8];

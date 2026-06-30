@@ -206,7 +206,7 @@ export default function EnquiryForm() {
           subject: formData.subject || undefined,
           syllabus: formData.syllabus || undefined,
           date: formData.date,
-          status: 'NEW',
+          status: 'LEAD',
           source: formData.source,
           country: formData.country,
           assignedTo: currentUser?.name,
@@ -261,10 +261,22 @@ export default function EnquiryForm() {
   const existingLeadsAtPhone = isDuplicate ? findDuplicateLeads() : [];
   const selectedExistingLead =
     existingLeadsAtPhone.find((lead) => lead.id === selectedExistingLeadId) ?? duplicateLead;
+
+  const daysSinceCreation = selectedExistingLead ? (() => {
+    const createdActivity = selectedExistingLead.activity?.find(a => a.kind === 'created');
+    const leadDate = createdActivity ? new Date(createdActivity.at) : new Date(selectedExistingLead.date);
+    const diffTime = new Date().getTime() - leadDate.getTime();
+    return diffTime / (1000 * 60 * 60 * 24);
+  })() : 999;
+
+  const isSevenDaysPassed = daysSinceCreation >= 7;
+
+  const isBlockedBySevenDayRule = isDuplicate && !!selectedExistingLead && currentUser && !isLeadOwner(selectedExistingLead, currentUser.name) && !isSevenDaysPassed;
+
   const canLogReEnquiry = isDuplicate && !!selectedExistingLead && canManageDuplicateLead(selectedExistingLead);
-  const showDuplicateChoice = isDuplicate && canLogReEnquiry && !duplicateIntent;
+  const showDuplicateChoice = isDuplicate && canLogReEnquiry && !duplicateIntent && !isBlockedBySevenDayRule;
   const showSharedStaffOptions =
-    isDuplicate && !!selectedExistingLead && currentUser && !canManageDuplicateLead(selectedExistingLead) && !duplicateIntent;
+    isDuplicate && !!selectedExistingLead && currentUser && !canManageDuplicateLead(selectedExistingLead) && !duplicateIntent && !isBlockedBySevenDayRule;
   const showReEnquiryForm = isDuplicate && duplicateIntent === 'reenquiry' && canLogReEnquiry;
   const showDetailsForm =
     phoneStepComplete && (duplicationStatus === 'NO' || duplicateIntent === 'sibling');
@@ -480,26 +492,6 @@ export default function EnquiryForm() {
                   <form onSubmit={handleSubmit} className="space-y-6 mt-4">
                     <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
                       <div className="bg-white rounded-xl border border-[#e4e4e7] divide-y divide-[#e4e4e7] overflow-hidden">
-                        <div className={`p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors ${errors.name ? 'bg-red-50/50' : ''}`}>
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Student name</label>
-                          <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
-                              <User size={18} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
-                            </div>
-                            <input 
-                              type="text" 
-                              placeholder="John Doe (optional)"
-                              value={formData.name}
-                              onChange={(e) => {
-                                setFormData({...formData, name: e.target.value});
-                                if (errors.name) setErrors({...errors, name: ''});
-                              }}
-                              className={`${inputStyles} pl-8 ${errors.name ? errorStyles : ''}`}
-                            />
-                          </div>
-                          {errors.name && <p className="text-red-500 text-xs font-bold mt-2">{errors.name}</p>}
-                        </div>
-
                         <div className={`p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors ${errors.parentName ? 'bg-red-50/50' : ''}`}>
                           <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Parent Name (Optional)</label>
                           <div className="relative group">
@@ -518,31 +510,11 @@ export default function EnquiryForm() {
                             />
                           </div>
                         </div>
-
-                        <div className={`p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors ${errors.email ? 'bg-red-50/50' : ''}`}>
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Email Address (Optional)</label>
-                          <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
-                              <Mail size={18} className="text-[#a1a1aa] group-focus-within:text-[#18181b] transition-colors" />
-                            </div>
-                            <input 
-                              type="email" 
-                              placeholder="john@example.com"
-                              value={formData.email}
-                              onChange={(e) => {
-                                setFormData({...formData, email: e.target.value});
-                                if (errors.email) setErrors({...errors, email: ''});
-                              }}
-                              className={`${inputStyles} pl-8 ${errors.email ? errorStyles : ''}`}
-                            />
-                          </div>
-                          {errors.email && <p className="text-red-500 text-xs font-bold mt-2">{errors.email}</p>}
-                        </div>
                       </div>
                     </div>
 
                     <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
-                      <div className="bg-white rounded-xl border border-[#e4e4e7] p-3 sm:p-4 mb-4 flex items-center justify-between">
+                      <div className="bg-white rounded-xl border border-[#e4e4e7] p-3 sm:p-4 flex items-center justify-between">
                         <div>
                           <p className="text-sm font-bold text-[#18181b]">Teacher Enquiry</p>
                           <p className="text-xs text-[#71717a]">Check if this is a teacher looking for a job</p>
@@ -556,59 +528,6 @@ export default function EnquiryForm() {
                           />
                           <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#18181b]"></div>
                         </label>
-                      </div>
-
-                      <div className="bg-white rounded-xl border border-[#e4e4e7] divide-y divide-[#e4e4e7] overflow-hidden">
-                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Grade (Optional)</label>
-                          <div className="relative">
-                            <select 
-                              value={formData.class}
-                              onChange={(e) => setFormData({...formData, class: e.target.value})}
-                              className={`${inputStyles} appearance-none pr-8`}
-                            >
-                              <option value="">Select Grade</option>
-                              {grades.map(c => (
-                                <option key={c} value={c}>{c}</option>
-                              ))}
-                            </select>
-                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
-                          </div>
-                        </div>
-
-                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Subject (Optional)</label>
-                          <div className="relative">
-                            <select
-                              value={formData.subject}
-                              onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                              className={`${inputStyles} appearance-none pr-8`}
-                            >
-                              <option value="">Select Subject</option>
-                              {subjects.map(s => (
-                                <option key={s} value={s}>{s}</option>
-                              ))}
-                            </select>
-                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
-                          </div>
-                        </div>
-
-                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Syllabus (Optional)</label>
-                          <div className="relative">
-                            <select 
-                              value={formData.syllabus}
-                              onChange={(e) => setFormData({...formData, syllabus: e.target.value})}
-                              className={`${inputStyles} appearance-none pr-8`}
-                            >
-                              <option value="">Select Syllabus</option>
-                              {syllabi.map(s => (
-                                <option key={s} value={s}>{s}</option>
-                              ))}
-                            </select>
-                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
-                          </div>
-                        </div>
                       </div>
                     </div>
 
@@ -702,55 +621,7 @@ export default function EnquiryForm() {
                       {duplicateLead?.status === 'LOST' && ' — lead will reopen to In Progress.'}
                       {duplicateLead?.status === 'JOINED' && ' — status stays Joined, note only.'}
                     </p>
-                    <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
-                      <div className="bg-white rounded-xl border border-[#e4e4e7] divide-y divide-[#e4e4e7] overflow-hidden">
-                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Grade</label>
-                          <div className="relative">
-                            <select
-                              value={formData.class}
-                              onChange={(e) => setFormData({ ...formData, class: e.target.value })}
-                              className={`${inputStyles} appearance-none pr-8`}
-                            >
-                              {grades.map(c => (
-                                <option key={c} value={c}>{c}</option>
-                              ))}
-                            </select>
-                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
-                          </div>
-                        </div>
-                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Subject</label>
-                          <div className="relative">
-                            <select
-                              value={formData.subject}
-                              onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                              className={`${inputStyles} appearance-none pr-8`}
-                            >
-                              {subjects.map(s => (
-                                <option key={s} value={s}>{s}</option>
-                              ))}
-                            </select>
-                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
-                          </div>
-                        </div>
-                        <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-[#71717a] block mb-2">Syllabus</label>
-                          <div className="relative">
-                            <select
-                              value={formData.syllabus}
-                              onChange={(e) => setFormData({ ...formData, syllabus: e.target.value })}
-                              className={`${inputStyles} appearance-none pr-8`}
-                            >
-                              {syllabi.map(s => (
-                                <option key={s} value={s}>{s}</option>
-                              ))}
-                            </select>
-                            <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+
                     <div className="bg-[#f4f4f5]/60 p-2 sm:p-3 rounded-2xl">
                       <div className="bg-white rounded-xl border border-[#e4e4e7] divide-y divide-[#e4e4e7] overflow-hidden">
                         <div className="p-3 sm:p-4 hover:bg-[#f4f4f5]/30 transition-colors">
@@ -834,9 +705,13 @@ export default function EnquiryForm() {
                       <div className="flex-1 min-w-0">
                         <h3 className="text-orange-800 font-bold mb-1">Existing lead found</h3>
                         <p className="text-orange-600/80 text-sm mb-4">
-                          {showSharedStaffOptions
-                            ? 'WhatsApp Business is shared — another counselor may own this student. Log your chat or request a handoff.'
-                            : 'Parents often share one WhatsApp number across children. Choose whether this is the same student calling again, or a different child.'}
+                          {isBlockedBySevenDayRule
+                            ? `This number was originally added by ${getLeadOwnerName(selectedExistingLead!)}. You must wait 7 days before you can add it.`
+                            : showSharedStaffOptions
+                              ? (isSevenDaysPassed && selectedExistingLead && !isLeadOwner(selectedExistingLead, currentUser?.name || ''))
+                                ? `This number was originally added by ${getLeadOwnerName(selectedExistingLead)}. Since 7 days have passed, you can now add it.`
+                                : 'WhatsApp Business is shared — another counselor may own this student. Log your chat or request a handoff.'
+                              : 'Parents often share one WhatsApp number across children. Choose whether this is the same student calling again, or a different child.'}
                         </p>
                         {existingLeadsAtPhone.length > 0 && (
                           <div className="bg-white/60 rounded-xl p-4 border border-orange-200/50 space-y-2 mb-4">
@@ -890,6 +765,22 @@ export default function EnquiryForm() {
                 <Phone size={18} />
                 Check Number
               </button>
+            ) : isBlockedBySevenDayRule ? (
+              <div className="bg-red-50 border border-red-200 rounded-[24px] p-6 text-center shadow-sm mt-2">
+                <ShieldAlert className="mx-auto text-red-500 mb-3" size={32} />
+                <h3 className="text-red-800 font-bold mb-2">Lead is Protected</h3>
+                <p className="text-sm text-red-600 font-medium mb-6">
+                  This number was added by <span className="font-bold">{getLeadOwnerName(selectedExistingLead!)}</span> {Math.floor(daysSinceCreation) === 0 ? 'today' : `${Math.floor(daysSinceCreation)} days ago`}.
+                  You cannot add this number for another {Math.ceil(7 - daysSinceCreation)} days.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleChangeNumber}
+                  className="w-full h-12 bg-white border border-red-200 text-red-700 rounded-xl text-sm font-bold transition-colors hover:bg-red-50 flex items-center justify-center gap-2"
+                >
+                  Enter Different Number
+                </button>
+              </div>
             ) : showSharedStaffOptions ? (
               <div className="space-y-3">
                 <button
@@ -917,7 +808,7 @@ export default function EnquiryForm() {
                     className="w-full sm:flex-1 h-14 bg-white border border-[#e4e4e7] text-[#18181b] rounded-xl text-sm font-medium transition-colors hover:bg-[#f4f4f5] flex items-center justify-center gap-2 interactive-element"
                   >
                     <UserPlus size={18} />
-                    Another child
+                    {isSevenDaysPassed ? 'Add as New Lead' : 'Another child'}
                   </button>
                 </div>
               </div>

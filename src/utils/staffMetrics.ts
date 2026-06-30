@@ -54,7 +54,7 @@ export function computeStaffMetrics(
     const joinedLeads = sLeads.filter(l => l.status === 'JOINED');
     const joins = joinedLeads.length;
     const lost = sLeads.filter(l => l.status === 'LOST').length;
-    const activeLeads = sLeads.filter(l => l.status === 'NEW' || l.status === 'IN PROGRESS').length;
+    const activeLeads = sLeads.filter(l => l.status === 'LEAD').length;
     const demosScheduled = sDemos.filter(d => d.status === 'SCHEDULED' || d.status === 'RESCHEDULED').length;
     const demosCompleted = sDemos.filter(d => d.status === 'CONVERTED').length;
 

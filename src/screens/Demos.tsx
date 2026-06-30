@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Calendar as CalendarIcon, Video, CheckCircle, XCircle, Search, PlayCircle, Plus,
   List, MoreVertical, ChevronLeft, ChevronRight, Settings, Columns, X, Clock, User, Download, Trash2, MessageCircle
@@ -63,6 +64,7 @@ const STATUS_LABELS: Record<Demo['status'], string> = {
 };
 
 export default function Demos() {
+  const navigate = useNavigate();
   const { currentUser, hasPermission } = useAuth();
   const { demos, updateDemo, deleteDemo, leads } = useData();
 
@@ -302,35 +304,58 @@ export default function Demos() {
               >
                 {/* Mobile drag handle */}
                 <div className="w-12 h-1.5 bg-[#d4d4d8] rounded-full mx-auto mb-4 sm:hidden" />
-                <div className="bg-white rounded-2xl overflow-hidden divide-y divide-[#e4e4e7] sm:rounded-none sm:divide-y-0 sm:bg-transparent">
-                  {isPending && (
-                    <>
-                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'CONVERTED'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-green-600 hover:bg-green-50 flex items-center gap-2">
-                        <CheckCircle size={18} className="sm:w-3.5 sm:h-3.5" /> Mark Complete
+                <div className="bg-white rounded-2xl overflow-hidden sm:rounded-none sm:bg-transparent">
+                  {/* Status Updates Section */}
+                  <div className="p-4 sm:p-2 bg-[#f4f4f5]/30 sm:bg-transparent sm:border-b sm:border-[#e4e4e7]">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] mb-3 sm:mb-2 ml-1">Update Status</p>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-1 sm:gap-1">
+                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'CONVERTED'); setOpenMenuId(null); }} className="px-2 py-2.5 sm:py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl sm:rounded-md flex items-center justify-center sm:justify-start gap-1.5 transition-colors">
+                        <CheckCircle size={14} /> Converted
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'CANCELLED'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
-                        <XCircle size={18} className="sm:w-3.5 sm:h-3.5" /> Cancel Demo
+                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'JOINED'); setOpenMenuId(null); }} className="px-2 py-2.5 sm:py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl sm:rounded-md flex items-center justify-center sm:justify-start gap-1.5 transition-colors">
+                        <CheckCircle size={14} /> Joined
                       </button>
-                    </>
-                  )}
-                  {!isPending && (
-                    <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'RESCHEDULED'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-[#18181b] hover:bg-[#f4f4f5] flex items-center gap-2">
-                      <Video size={18} className="sm:w-3.5 sm:h-3.5" /> Reschedule
+                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'ATTENDED'); setOpenMenuId(null); }} className="px-2 py-2.5 sm:py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl sm:rounded-md flex items-center justify-center sm:justify-start gap-1.5 transition-colors">
+                        <CheckCircle size={14} /> Attended
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'RESCHEDULED'); setOpenMenuId(null); }} className="px-2 py-2.5 sm:py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl sm:rounded-md flex items-center justify-center sm:justify-start gap-1.5 transition-colors">
+                        <Video size={14} /> Rescheduled
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); handleStatusChange(demo.id, 'CANCELLED'); setOpenMenuId(null); }} className="col-span-2 sm:col-span-1 px-2 py-2.5 sm:py-1.5 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 rounded-xl sm:rounded-md flex items-center justify-center sm:justify-start gap-1.5 transition-colors">
+                        <XCircle size={14} /> Cancel Demo
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Actions Section */}
+                  <div className="divide-y divide-[#e4e4e7] sm:divide-y-0 sm:p-1">
+                    <button onClick={(e) => { e.stopPropagation(); navigate(`?leadId=${demo.leadId}`); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-2 sm:py-2 text-sm sm:text-xs font-bold text-[#18181b] hover:bg-[#f4f4f5] sm:rounded-md flex items-center gap-2">
+                      <User size={18} className="sm:w-3.5 sm:h-3.5 text-zinc-600" /> View Lead Details
                     </button>
-                  )}
-                  {hasPermission('delete_demo') && (
-                    <>
-                      <div className="hidden sm:block h-px bg-[#e4e4e7] my-1 mx-2" />
-                      <button onClick={(e) => { e.stopPropagation(); confirmDelete(demo.id); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
-                        <Trash2 size={18} className="sm:w-3.5 sm:h-3.5" /> Delete
-                      </button>
-                    </>
-                  )}
-                  {demo.phone && (
-                    <button onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/${demo.phone.replace(/\D/g, '')}`, '_blank'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-3 sm:py-2.5 text-sm sm:text-xs font-bold text-[#18181b] hover:bg-[#f4f4f5] flex items-center gap-2 border-t border-[#e4e4e7]">
-                      <MessageCircle size={18} className="text-green-500 sm:w-3.5 sm:h-3.5" /> WhatsApp
+                    <button onClick={(e) => { 
+                      e.stopPropagation(); 
+                      const t = window.prompt('Assign Teacher (leave blank to unassign):', demo.teacher || '');
+                      if (t !== null) {
+                        updateDemo(demo.id, { teacher: t.trim() });
+                      }
+                      setOpenMenuId(null); 
+                    }} className="w-full text-left px-4 py-4 sm:px-2 sm:py-2 text-sm sm:text-xs font-bold text-[#18181b] hover:bg-[#f4f4f5] sm:rounded-md flex items-center gap-2">
+                      <User size={18} className="sm:w-3.5 sm:h-3.5 text-blue-600" /> Assign Teacher
                     </button>
-                  )}
+                    {demo.phone && (
+                      <button onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/${demo.phone.replace(/\D/g, '')}`, '_blank'); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-2 sm:py-2 text-sm sm:text-xs font-bold text-[#18181b] hover:bg-[#f4f4f5] sm:rounded-md flex items-center gap-2">
+                        <MessageCircle size={18} className="text-green-500 sm:w-3.5 sm:h-3.5" /> WhatsApp
+                      </button>
+                    )}
+                    {hasPermission('delete_demo') && (
+                      <>
+                        <div className="hidden sm:block h-px bg-[#e4e4e7] my-1 mx-1" />
+                        <button onClick={(e) => { e.stopPropagation(); confirmDelete(demo.id); setOpenMenuId(null); }} className="w-full text-left px-4 py-4 sm:px-2 sm:py-2 text-sm sm:text-xs font-bold text-red-600 hover:bg-red-50 sm:rounded-md flex items-center gap-2">
+                          <Trash2 size={18} className="sm:w-3.5 sm:h-3.5" /> Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             </>
@@ -369,7 +394,7 @@ export default function Demos() {
             onAction: () => handleStatusChange(demo.id, 'CANCELLED')
           } : undefined}
         >
-          <div className={`bg-white transition-all hover:shadow-md ${isMenuOpen ? 'z-50 overflow-visible relative' : 'relative'} ${isCompact ? 'border border-[#e4e4e7] rounded-2xl p-3.5 mb-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-[#d4d4d8]' : 'p-4 border-b border-[#e4e4e7] hover:bg-[#fafafa]'}`}>
+          <div className={`bg-white transition-all hover:shadow-md ${isMenuOpen ? 'z-50 overflow-visible relative' : 'relative'} ${isCompact ? 'border border-[#e4e4e7] rounded-2xl p-3.5 mb-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-[#d4d4d8]' : 'p-4 border-b border-[#e4e4e7] hover:bg-[#fafafa] first:rounded-t-[23px] last:rounded-b-[23px]'}`}>
             <div className="flex items-start gap-3 sm:gap-4">
               {/* Time column */}
               <div className="shrink-0 flex flex-col items-center pt-0.5 w-14 sm:w-16">
@@ -399,9 +424,16 @@ export default function Demos() {
                   <p className="text-[11px] font-semibold text-[#71717a] truncate">{demo.class} · {demo.subject}</p>
 
                   <div className="flex flex-wrap items-center gap-2 mt-2">
-                    <span className="text-[10px] font-bold text-[#71717a] bg-[#f4f4f5] px-2 py-1 rounded-lg flex items-center gap-1">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const t = window.prompt('Assign Teacher (leave blank to unassign):', demo.teacher || '');
+                        if (t !== null) updateDemo(demo.id, { teacher: t.trim() });
+                      }}
+                      className={`text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 transition-colors interactive-element ${demo.teacher ? 'text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-100' : 'text-[#71717a] bg-[#f4f4f5] hover:bg-[#e4e4e7] border border-[#e4e4e7]'}`}
+                    >
                       <User size={10} /> {demo.teacher || 'Unassigned'}
-                    </span>
+                    </button>
                     {demo.meetLink && isPending && (
                       <a
                         href={demo.meetLink}
@@ -441,33 +473,72 @@ export default function Demos() {
 
 
 
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
-        <div>
-          <h2 className="text-sm font-black text-blue-800">Primary Goal: Lead Parents to a Demo</h2>
-          <p className="text-xs font-medium text-blue-600 mt-0.5">Ensure every scheduled demo converts into an admission.</p>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-          <Video size={20} />
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/50 rounded-3xl p-5 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+              <Video size={24} className="animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-[#18181b] tracking-tight">Primary Goal: Lead Parents to a Demo</h2>
+              <p className="text-xs font-semibold text-[#71717a] mt-1">Ensure every scheduled demo converts into an admission.</p>
+            </div>
+          </div>
+          
+          <div className="flex bg-white rounded-2xl p-1 shadow-sm border border-blue-100/50 shrink-0 w-full md:w-auto">
+            <div className="px-4 py-2 flex flex-col justify-center items-center flex-1 md:flex-none">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] mb-0.5">Today's Demos</span>
+              <span className="text-xl font-black text-blue-600 leading-none">{todaySummary.scheduled}</span>
+            </div>
+            <div className="w-px bg-blue-50 my-2" />
+            <div className="px-4 py-2 flex flex-col justify-center items-center flex-1 md:flex-none">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] mb-0.5">Completed</span>
+              <span className="text-xl font-black text-emerald-600 leading-none">{todaySummary.completed}</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 px-1">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
         {[
-          { id: 'PENDING', label: 'Pending Demos' },
-          { id: 'POST_DEMO', label: 'Follow Up' },
-          { id: 'COMPLETED', label: 'Completed' },
-          { id: 'CALENDAR', label: 'Calendar' }
+          { 
+            id: 'PENDING', 
+            label: 'Pending (Today & Tomorrow)',
+            count: viewableDemos.filter(d => 
+              (d.date === todayStr || d.date === formatDateForInput(new Date(new Date().setDate(new Date().getDate() + 1)))) && 
+              (d.status === 'SCHEDULED' || d.status === 'RESCHEDULED')
+            ).length 
+          },
+          { 
+            id: 'POST_DEMO', 
+            label: 'Follow Up (Post Demo)',
+            count: viewableDemos.filter(d => d.status === 'ATTENDED' || d.status === 'NO_SHOW').length
+          },
+          { 
+            id: 'COMPLETED', 
+            label: 'Completed',
+            count: viewableDemos.filter(d => d.status === 'JOINED' || d.status === 'CONVERTED').length
+          },
+          { id: 'CALENDAR', label: 'Calendar', count: null }
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setViewMode(tab.id as any)}
-            className={`px-4 py-2 min-h-[40px] text-xs font-bold rounded-full transition-all border whitespace-nowrap ${
+            className={`px-4 py-2 min-h-[44px] text-xs font-bold rounded-full transition-all border whitespace-nowrap flex items-center gap-2 shrink-0 ${
               viewMode === tab.id
                 ? 'bg-[#18181b] text-white border-[#18181b] shadow-sm'
-                : 'bg-white text-[#71717a] border-[#e4e4e7] active:bg-[#f4f4f5]'
+                : 'bg-white text-[#71717a] border-[#e4e4e7] hover:border-[#18181b]'
             }`}
           >
             {tab.label}
+            {tab.count !== null && (
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                viewMode === tab.id ? 'bg-white/20 text-white' : 'bg-[#f4f4f5] text-[#18181b]'
+              }`}>
+                {tab.count}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -506,19 +577,13 @@ export default function Demos() {
           )}
           <button
             onClick={() => setIsFilterModalOpen(true)}
-            className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white border border-[#e4e4e7] rounded-2xl text-[#18181b] active:bg-[#f4f4f5] shadow-sm transition-all relative shrink-0"
+            className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white border border-[#e4e4e7] rounded-2xl text-[#18181b] hover:border-[#18181b] active:bg-[#f4f4f5] shadow-sm transition-all relative shrink-0"
           >
             <Settings size={18} />
             {activeFilterChips.length > 0 && (
               <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-blue-600 border-2 border-white rounded-full" />
             )}
           </button>
-
-          <div className="flex bg-[#f4f4f5] p-1 rounded-xl border border-[#e4e4e7]">
-            <ViewToggle active={(viewMode === 'PENDING' || viewMode === 'POST_DEMO' || viewMode === 'COMPLETED')} onClick={() => setViewMode('AGENDA')} icon={<List size={16} />} label="List" />
-            <ViewToggle active={viewMode === 'KANBAN'} onClick={() => setViewMode('KANBAN')} icon={<Columns size={16} />} label="Board" />
-            <ViewToggle active={viewMode === 'CALENDAR'} onClick={() => setViewMode('CALENDAR')} icon={<CalendarIcon size={16} />} label="Cal" hideLabelOnMobile />
-          </div>
         </div>
       </div>
 
@@ -560,7 +625,7 @@ export default function Demos() {
                     <span className="text-[10px] font-bold text-[#a1a1aa] bg-[#e4e4e7] px-2 py-0.5 rounded-lg">{group.demos.length}</span>
                     <div className="flex-1 h-px bg-[#e4e4e7]" />
                   </div>
-                  <div className="bg-white rounded-3xl border border-[#e4e4e7] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                  <div className="bg-white rounded-3xl border border-[#e4e4e7] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                     <div className="flex flex-col [&>div:last-child>div>div]:border-b-0">
                       {group.demos.map(demo => renderDemoItem(demo, 'agenda'))}
                     </div>
@@ -568,34 +633,6 @@ export default function Demos() {
                 </div>
               ))
             )}
-          </div>
-        )}
-
-        {viewMode === 'KANBAN' && (
-          <div className="flex lg:grid lg:grid-cols-3 gap-4 overflow-x-auto pb-4 snap-x items-start">
-            {KANBAN_COLUMNS.map(col => {
-              const statusDemos = filteredDemos.filter(d =>
-                d.status === col.key ||
-                (col.key === 'SCHEDULED' && d.status === 'RESCHEDULED') ||
-                (col.key === 'CANCELLED' && d.status === 'NO_SHOW')
-              );
-              return (
-                <div key={col.key} className="w-[300px] sm:w-[320px] lg:w-auto bg-[#fafafa] border border-[#e4e4e7] rounded-[24px] p-4 shrink-0 snap-center flex flex-col max-h-[calc(100vh-320px)]">
-                  <div className="flex items-center gap-2 mb-4 px-1 shrink-0">
-                    <span className={`w-2 h-2 rounded-full ${col.color}`} />
-                    <h3 className="text-xs font-black uppercase tracking-widest text-[#18181b]">{col.label}</h3>
-                    <span className="text-[10px] font-bold text-[#a1a1aa] bg-white border border-[#e4e4e7] px-2 py-0.5 rounded-full ml-auto">{statusDemos.length}</span>
-                  </div>
-                  <div className="overflow-y-auto no-scrollbar flex-1 space-y-0">
-                    {statusDemos.length === 0 ? (
-                      <div className="text-center py-12 text-xs font-semibold text-[#a1a1aa]">No demos here</div>
-                    ) : (
-                      statusDemos.map(demo => renderDemoItem(demo, 'compact'))
-                    )}
-                  </div>
-                </div>
-              );
-            })}
           </div>
         )}
 

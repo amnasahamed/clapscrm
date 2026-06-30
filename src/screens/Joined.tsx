@@ -47,9 +47,9 @@ export default function Joined() {
   }, [joinedLeads]);
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="flex flex-col gap-6 pb-24">
       {/* Top Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="order-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#18181b] tracking-tight">Joined Students</h1>
           <p className="text-sm text-[#71717a]">Dashboard & admissions tracking</p>
@@ -57,7 +57,7 @@ export default function Joined() {
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="order-2 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-[24px] p-6 shadow-sm border border-[#e4e4e7] flex items-center gap-4">
           <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center shrink-0 border border-green-100">
             <GraduationCap size={24} className="text-green-600" />
@@ -79,7 +79,7 @@ export default function Joined() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="order-4 lg:order-3 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-[24px] p-6 shadow-sm border border-[#e4e4e7]">
           <h3 className="text-sm font-bold text-[#18181b] mb-6 flex items-center gap-2">
             <TrendingUp size={16} className="text-[#a1a1aa]" />
@@ -124,7 +124,7 @@ export default function Joined() {
       </div>
 
       {/* List Section */}
-      <div className="bg-white rounded-[24px] shadow-sm border border-[#e4e4e7] overflow-hidden">
+      <div className="order-3 lg:order-4 bg-white rounded-[24px] shadow-sm border border-[#e4e4e7] overflow-hidden">
         <div className="p-4 sm:p-6 border-b border-[#e4e4e7] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-[#18181b]">Recent Admissions</h2>
           <div className="relative w-full sm:w-64">

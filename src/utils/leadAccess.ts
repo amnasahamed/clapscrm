@@ -1,9 +1,9 @@
 import type { Lead } from '../types';
 
-export const ACTIVE_LEAD_STATUSES = ['NEW', 'IN PROGRESS'] as const;
+export const ACTIVE_LEAD_STATUSES = ['LEAD'] as const;
 
 export function isActiveLeadStatus(status: Lead['status']): boolean {
-  return status === 'NEW' || status === 'IN PROGRESS';
+  return status === 'LEAD';
 }
 
 export function getLeadOwnerName(lead: Lead): string {

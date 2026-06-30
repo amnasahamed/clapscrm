@@ -23,6 +23,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardBackground from './components/DashboardBackground';
 import BottomSheet from './components/BottomSheet';
+import GlobalLeadModal from './components/GlobalLeadModal';
 import { fetchClientIp } from './utils/ip';
 import { useIsMobile } from './hooks/useIsMobile';
 import { useScrollLock } from './hooks/useScrollLock';
@@ -30,7 +31,7 @@ import { useAppearancePrefs } from './hooks/useAppearancePrefs';
 import { MOBILE_FAB_BOTTOM } from './constants/layout';
 import { filterViewableLeads } from './utils/leadAccess';
 
-const PRIMARY_NAV_PATHS = ['/', '/leads', '/joined', '/demos', '/settings'];
+const PRIMARY_NAV_PATHS = ['/', '/leads', '/demos', '/joined', '/settings'];
 
 function MainLayout() {
   const location = useLocation();
@@ -89,8 +90,8 @@ function MainLayout() {
   const allNavItems = useMemo(() => [
     { path: '/', label: 'Home', icon: HomeIcon, show: true },
     { path: '/leads', label: 'Leads', icon: Users, show: true },
-    { path: '/joined', label: 'Joined', icon: GraduationCap, show: true },
     { path: '/demos', label: 'Demos', icon: Video, show: true },
+    { path: '/joined', label: 'Joined', icon: GraduationCap, show: true },
     { path: '/settings', label: 'Settings', icon: LucideSettings, show: true },
     { path: '/admin', label: 'Admin', icon: ShieldCheck, show: hasPermission('admin_dashboard') },
     { path: '/teachers', label: 'Teachers', icon: GraduationCap, show: hasPermission('manage_staff') },
@@ -211,9 +212,9 @@ function MainLayout() {
         <header className="sticky top-0 z-40 bg-white border-b border-[#e4e4e7] flex items-center justify-between px-4 sm:px-6 h-14 sm:h-16 safe-top shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             {isFormPage ? (
-              <Link to="/leads" className="p-2.5 hover:bg-[#f4f4f5] rounded-xl transition-colors interactive-element">
+              <button onClick={() => { if (window.history.length > 2) { navigate(-1); } else { navigate('/leads'); } }} className="p-2.5 hover:bg-[#f4f4f5] rounded-xl transition-colors interactive-element">
                 <ArrowLeft size={22} />
-              </Link>
+              </button>
             ) : (
               <h1 className="text-base sm:text-lg font-semibold tracking-tight truncate md:hidden">{getPageTitle()}</h1>
             )}
@@ -329,7 +330,7 @@ function MainLayout() {
                           key={lead.id}
                           onClick={() => {
                             setShowCommandPalette(false);
-                            navigate('/leads', { state: { highlightLeadId: lead.id } });
+                            navigate({ pathname: location.pathname, search: `?leadId=${lead.id}` });
                           }}
                           className="w-full text-left p-4 min-h-[56px] rounded-2xl hover:bg-[#f4f4f5] active:bg-[#e4e4e7] transition-colors flex items-center justify-between gap-3"
                         >
@@ -450,6 +451,9 @@ function MainLayout() {
             })}
           </div>
         </BottomSheet>
+
+        {/* Global Lead Details Modal triggered by ?leadId=... */}
+        <GlobalLeadModal />
       </div>
       </div>
     </div>

@@ -121,7 +121,13 @@ function loadData(): DataStorage {
         return d;
       };
 
-      const leads = Array.isArray(parsed.leads) ? parsed.leads.map(l => ({...l, date: normalizeDate(l.date)})) : MOCK_LEADS;
+      const leads = Array.isArray(parsed.leads) ? parsed.leads.map(l => {
+        let status = l.status;
+        if ((status as string) === 'NEW' || (status as string) === 'IN PROGRESS') {
+          status = 'LEAD';
+        }
+        return {...l, status, date: normalizeDate(l.date)};
+      }) : MOCK_LEADS;
       const demos = Array.isArray(parsed.demos) ? parsed.demos.map(d => ({...d, date: normalizeDate(d.date)})) : MOCK_DEMOS;
       
       const fiveYearsAgoMs = Date.now() - 5 * 365 * 24 * 60 * 60 * 1000;
@@ -451,7 +457,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       };
 
       if (lead.status === 'LOST') {
-        patch.status = 'IN PROGRESS';
+        patch.status = 'LEAD';
       }
       if (payload.email && !lead.email) {
         patch.email = payload.email;

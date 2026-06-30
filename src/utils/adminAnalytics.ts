@@ -175,7 +175,7 @@ export interface SourcePerformanceRow {
   source: string;
   leads: number;
   joins: number;
-  inProgress: number;
+  active: number;
   lost: number;
   conversionRate: number;
   collection: number;
@@ -200,7 +200,7 @@ export function computeSourcePerformance(
     .map(([source, sourceLeads]) => {
       const joinedLeads = sourceLeads.filter(l => l.status === 'JOINED');
       const joins = joinedLeads.length;
-      const inProgress = sourceLeads.filter(l => l.status === 'IN PROGRESS').length;
+      const active = sourceLeads.filter(l => l.status === 'LEAD').length;
       const lost = sourceLeads.filter(l => l.status === 'LOST').length;
       const leadIds = new Set(sourceLeads.map(l => l.id));
       const demosCompleted = filteredDemos.filter(
@@ -211,7 +211,7 @@ export function computeSourcePerformance(
         source,
         leads: sourceLeads.length,
         joins,
-        inProgress,
+        active,
         lost,
         conversionRate: sourceLeads.length
           ? Number(((joins / sourceLeads.length) * 100).toFixed(1))

@@ -22,7 +22,6 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
   const [selectedLeadId, setSelectedLeadId] = useState<string>('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [teacher, setTeacher] = useState('');
   const [meetLink, setMeetLink] = useState('');
   
   const [leadSearchQuery, setLeadSearchQuery] = useState('');
@@ -49,7 +48,6 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
       }
       setDate('');
       setTime('');
-      setTeacher('');
       setMeetLink('');
       setSchedulingNotes('');
       setLeadSearchQuery('');
@@ -94,16 +92,15 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
       subject: editableSubject || activeLead.subject || 'General',
       date,
       time,
-      teacher,
+      teacher: '',
       status: 'SCHEDULED',
       meetLink,
       schedulingNotes,
       createdBy: currentUser?.name
     });
 
-    // Update lead with new name/class and move to IN PROGRESS if NEW
+    // Update lead with new name/class
     const leadUpdates: Partial<Lead> = {};
-    if (activeLead.status === 'NEW') leadUpdates.status = 'IN PROGRESS';
     if (editableName.trim() !== activeLead.name) leadUpdates.name = editableName.trim();
     if (editableClass.trim() !== activeLead.class) leadUpdates.class = editableClass.trim();
     if ((editableSubject.trim() || 'General') !== activeLead.subject) leadUpdates.subject = editableSubject.trim() || 'General';
@@ -290,24 +287,6 @@ export default function ScheduleDemoModal({ isOpen, onClose, lead, onDemoSchedul
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Assigned Teacher (Optional)</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User size={16} className="text-[#a1a1aa]" />
-                    </div>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. John Doe"
-                      value={teacher}
-                      onChange={e => setTeacher(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-[#e4e4e7] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#18181b] shadow-sm transition-all" 
-                    />
-                  </div>
-                  <p className="text-[10px] font-medium text-[#71717a] ml-1 mt-1 leading-tight">
-                    * Teacher is assigned based on time and availability, and may not match the parent's initially requested slot.
-                  </p>
-                </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Meeting Link (Optional)</label>

@@ -48,6 +48,7 @@ export default function EditLeadModal({
     subject: '',
     syllabus: '',
     source: '',
+    nextFollowUp: '',
   });
   const [amountCollected, setAmountCollected] = useState<string>('');
   const [newNote, setNewNote] = useState('');
@@ -66,6 +67,7 @@ export default function EditLeadModal({
       subject: lead.subject || subjects[0] || 'General',
       syllabus: lead.syllabus || syllabi[0] || '',
       source: lead.source,
+      nextFollowUp: lead.nextFollowUp || '',
     });
     setAmountCollected(
       typeof lead.amountCollected === 'number' && lead.amountCollected > 0
@@ -159,6 +161,7 @@ export default function EditLeadModal({
         syllabus: formData.syllabus || undefined,
         source: formData.source,
         country: formData.country,
+        nextFollowUp: formData.nextFollowUp || undefined,
         ...(lead.status === 'JOINED'
           ? { amountCollected: Math.max(0, Math.round(Number(amountCollected) || 0)) }
           : {}),
@@ -269,18 +272,19 @@ export default function EditLeadModal({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Grade</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Class</label>
             <div className="relative">
               <select
                 value={formData.class}
-                onChange={(e) => setFormData((prev) => ({ ...prev, class: e.target.value }))}
-                className={`${inputStyles} appearance-none pr-10`}
+                onChange={(e) => setFormData({ ...formData, class: e.target.value })}
+                className={inputStyles + ' appearance-none cursor-pointer'}
               >
+                <option value="" disabled>Select Class</option>
                 {classOptions.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-              <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" size={16} />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -315,19 +319,30 @@ export default function EditLeadModal({
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Source</label>
-          <div className="relative">
-            <select
-              value={formData.source}
-              onChange={(e) => setFormData((prev) => ({ ...prev, source: e.target.value }))}
-              className={`${inputStyles} appearance-none pr-10`}
-            >
-              {leadSources.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Source</label>
+            <div className="relative">
+              <select
+                value={formData.source}
+                onChange={(e) => setFormData((prev) => ({ ...prev, source: e.target.value }))}
+                className={`${inputStyles} appearance-none pr-10`}
+              >
+                {leadSources.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a1a1aa] pointer-events-none" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Schedule Follow-Up</label>
+            <input
+              type="datetime-local"
+              value={formData.nextFollowUp}
+              onChange={(e) => setFormData({ ...formData, nextFollowUp: e.target.value })}
+              className={inputStyles}
+            />
           </div>
         </div>
 

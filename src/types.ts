@@ -100,7 +100,7 @@ export interface Lead {
   phone: string;
   email?: string;
   date: string;
-  status: 'NEW' | 'JOINED' | 'IN PROGRESS' | 'LOST';
+  status: 'LEAD' | 'JOINED' | 'LOST';
   class: string;
   subject?: string;
   syllabus?: string;
@@ -111,6 +111,7 @@ export interface Lead {
   isHot?: boolean;
   contactHistory?: ContactAttempt[];
   followUpCount?: number;
+  nextFollowUp?: string;
   isPostDemo?: boolean;
   createdBy?: string;
   interestStatus?: InterestStatus;
