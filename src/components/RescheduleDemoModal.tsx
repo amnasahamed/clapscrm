@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { X, Calendar, Clock, User, Video, GraduationCap, ChevronDown } from 'lucide-react';
-import { useTeachers } from '../hooks/useTeachers';
+import { useData } from '../contexts/DataContext';
 import OverlayShell from './OverlayShell';
 import { Z } from '../constants/overlays';
 import { Demo } from '../types';
@@ -24,7 +24,7 @@ export default function RescheduleDemoModal({
   const [time, setTime] = useState('');
   const [teacher, setTeacher] = useState('');
   const [meetLink, setMeetLink] = useState('');
-  const { teachers, loading } = useTeachers();
+  const { teachers } = useData();
 
   // Reset form when modal opens with a new demo
   useEffect(() => {
@@ -126,10 +126,9 @@ export default function RescheduleDemoModal({
               <select
                 value={teacher}
                 onChange={e => setTeacher(e.target.value)}
-                disabled={loading}
                 className="w-full pl-10 pr-10 py-3 bg-[#f4f4f5] border border-transparent focus:bg-white focus:border-[#18181b] rounded-xl text-sm font-semibold transition-all outline-none appearance-none"
               >
-                <option value="">{loading ? 'Loading teachers...' : 'Select a teacher (Optional)'}</option>
+                <option value="">Select a teacher (Optional)</option>
                 {teachers.map(t => (
                   <option key={t.id} value={t.teacher_name}>
                     {t.teacher_name}

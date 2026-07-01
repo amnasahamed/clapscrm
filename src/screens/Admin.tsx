@@ -15,15 +15,17 @@ import AdminStaffPerformanceSection from './admin/AdminStaffPerformanceSection';
 import AdminAnalyticsSection from './admin/AdminAnalyticsSection';
 import AdminAcademicSection from './admin/AdminAcademicSection';
 import AdminTeacherEnquiriesSection from './admin/AdminTeacherEnquiriesSection';
+import AdminTeachersSection from './admin/AdminTeachersSection';
 
-type AdminTab = 'team' | 'analytics' | 'academic' | 'sources' | 'teachers' | 'logs' | 'performance';
+type AdminTab = 'team' | 'analytics' | 'academic' | 'sources' | 'teachers' | 'teacherEnquiries' | 'logs' | 'performance';
 
 const TABS: { id: AdminTab; label: string; icon: typeof Users }[] = [
   { id: 'team', label: 'Team', icon: Users },
   { id: 'analytics', label: 'Analytics', icon: LineChart },
   { id: 'academic', label: 'Academic', icon: BookOpen },
   { id: 'sources', label: 'Sources', icon: Tag },
-  { id: 'teachers', label: 'Teacher Enquiries', icon: Users },
+  { id: 'teachers', label: 'Teachers', icon: Users },
+  { id: 'teacherEnquiries', label: 'Teacher Enquiries', icon: Users },
   { id: 'logs', label: 'Access Logs', icon: ScrollText },
   { id: 'performance', label: 'Staff KPIs', icon: BarChart3 },
 ];
@@ -127,9 +129,10 @@ export default function Admin() {
 
       {activeTab === 'analytics' && <AdminAnalyticsSection />}
       {activeTab === 'academic' && <AdminAcademicSection />}
-      {activeTab === 'sources' && <AdminSourcesSection />}
-      {activeTab === 'teachers' && <AdminTeacherEnquiriesSection />}
-      {activeTab === 'logs' && <AdminAccessLogsSection />}
+      { activeTab === 'sources' && <AdminSourcesSection /> }
+      { activeTab === 'teachers' && <AdminTeachersSection /> }
+      { activeTab === 'teacherEnquiries' && <AdminTeacherEnquiriesSection /> }
+      { activeTab === 'logs' && <AdminAccessLogsSection /> }
       {activeTab === 'performance' && <AdminStaffPerformanceSection />}
 
       {activeTab === 'team' && (

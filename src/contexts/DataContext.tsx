@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Lead, Demo, Reminder, ContactAttempt, AccessLogEntry, LeadTransferRequest, DEFAULT_LEAD_SOURCES, DEFAULT_GRADES, DEFAULT_SUBJECTS, DEFAULT_SYLLABI, generateId, ActivityKind, TeacherEnquiry } from '../types';
+import { Lead, Demo, Reminder, ContactAttempt, AccessLogEntry, LeadTransferRequest, DEFAULT_LEAD_SOURCES, DEFAULT_GRADES, DEFAULT_SUBJECTS, DEFAULT_SYLLABI, generateId, ActivityKind, TeacherEnquiry, Teacher } from '../types';
 import { MOCK_LEADS, MOCK_DEMOS } from '../constants';
 import { isLeadManagedBy, shouldHandoffLeadOnOffboard } from '../utils/leadAccess';
 import { buildActivity, appendActivity } from '../utils/activityLog';
@@ -19,6 +19,8 @@ interface DataStorage {
   grades: string[];
   subjects: string[];
   syllabi: string[];
+  teachers: Teacher[];
+  lastTeacherSync: number;
 }
 
 interface DataContextType {
@@ -33,6 +35,10 @@ interface DataContextType {
   grades: string[];
   subjects: string[];
   syllabi: string[];
+  teachers: Teacher[];
+  lastTeacherSync: number;
+
+  fetchAndSyncTeachers: () => Promise<void>;
 
   addLead: (lead: Omit<Lead, 'id'>) => { success: boolean; error?: string };
   addTeacherEnquiry: (enquiry: Omit<TeacherEnquiry, 'id'>) => { success: boolean; error?: string };
@@ -154,6 +160,8 @@ function loadData(): DataStorage {
         syllabi: Array.isArray(parsed.syllabi) && parsed.syllabi.length > 0
           ? parsed.syllabi
           : [...DEFAULT_SYLLABI],
+        teachers: Array.isArray(parsed.teachers) ? parsed.teachers : [],
+        lastTeacherSync: typeof parsed.lastTeacherSync === 'number' ? parsed.lastTeacherSync : 0,
       };
     }
   } catch { /* ignore corrupt data */ }
@@ -169,6 +177,8 @@ function loadData(): DataStorage {
     grades: [...DEFAULT_GRADES],
     subjects: [...DEFAULT_SUBJECTS],
     syllabi: [...DEFAULT_SYLLABI],
+    teachers: [],
+    lastTeacherSync: 0,
   };
 }
 
@@ -181,6 +191,41 @@ export function DataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(data));
   }, [data]);
+
+  const fetchAndSyncTeachers = async () => {
+    try {
+      const response = await fetch('/api/teachers');
+      if (!response.ok) throw new Error('Failed to fetch teachers');
+      const fetchedTeachers: Teacher[] = await response.json();
+      
+      setData(prev => {
+        // Merge by teacher_code, falling back to id if no code
+        const map = new Map<string | number, Teacher>();
+        
+        // Add existing first
+        prev.teachers.forEach(t => map.set(t.teacher_code || t.id, t));
+        
+        // Overwrite with fresh db records
+        fetchedTeachers.forEach(t => map.set(t.teacher_code || t.id, t));
+        
+        return {
+          ...prev,
+          teachers: Array.from(map.values()),
+          lastTeacherSync: Date.now()
+        };
+      });
+    } catch (error) {
+      console.error('Error syncing teachers:', error);
+    }
+  };
+
+  // Auto-sync teachers hourly
+  useEffect(() => {
+    const oneHour = 60 * 60 * 1000;
+    if (Date.now() - data.lastTeacherSync > oneHour) {
+      fetchAndSyncTeachers();
+    }
+  }, []);
 
   /**
    * Helper: apply a mutation to a lead and also append an activity entry.
@@ -811,6 +856,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       grades: [...DEFAULT_GRADES],
       subjects: [...DEFAULT_SUBJECTS],
       syllabi: [...DEFAULT_SYLLABI],
+      teachers: data.teachers,
+      lastTeacherSync: data.lastTeacherSync,
     });
   };
 
@@ -821,24 +868,47 @@ export function DataProvider({ children }: { children: ReactNode }) {
       reminders: data.reminders,
       whatsappTemplates: data.whatsappTemplates,
       accessLogs: data.accessLogs,
-      leadTransfers: data.leadTransfers,
-      teacherEnquiries: data.teacherEnquiries,
-      leadSources: data.leadSources,
-      grades: data.grades,
-      subjects: data.subjects,
-      syllabi: data.syllabi,
-      addLead, addTeacherEnquiry, markAsTeacher, updateLead, deleteLead,
-      addDemo, updateDemo, deleteDemo,
-      addNoteToLead, updateNoteInLead, deleteNoteFromLead,
-      addContactAttemptToLead, incrementLeadFollowUp, logReEnquiry, updateWhatsAppTemplate,
-      addReminder, toggleReminder, deleteReminder,
-      addAccessLog, createLeadTransfer, requestLeadHandoff, acceptLeadTransfer,
-      rejectLeadTransfer, cancelLeadTransfer, reassignLead, offboardStaff,
-      addLeadSource, updateLeadSource, deleteLeadSource,
-      addGrade, updateGrade, deleteGrade,
-      addSubject, updateSubject, deleteSubject,
-      addSyllabus, updateSyllabus, deleteSyllabus,
-      resetData
+      ...data,
+      fetchAndSyncTeachers,
+      addLead,
+      addTeacherEnquiry,
+      markAsTeacher,
+      updateLead,
+      deleteLead,
+      addDemo,
+      updateDemo,
+      deleteDemo,
+      addNoteToLead,
+      updateNoteInLead,
+      deleteNoteFromLead,
+      addContactAttemptToLead,
+      incrementLeadFollowUp,
+      logReEnquiry,
+      updateWhatsAppTemplate,
+      addReminder,
+      toggleReminder,
+      deleteReminder,
+      addAccessLog,
+      createLeadTransfer,
+      requestLeadHandoff,
+      acceptLeadTransfer,
+      rejectLeadTransfer,
+      cancelLeadTransfer,
+      reassignLead,
+      offboardStaff,
+      addLeadSource,
+      updateLeadSource,
+      deleteLeadSource,
+      addGrade,
+      updateGrade,
+      deleteGrade,
+      addSubject,
+      updateSubject,
+      deleteSubject,
+      addSyllabus,
+      updateSyllabus,
+      deleteSyllabus,
+      resetData,
     }}>
       {children}
     </DataContext.Provider>

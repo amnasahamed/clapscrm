@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Calendar, User, GraduationCap, CheckCircle, SlidersHorizontal, BookOpen } from 'lucide-react';
-import { useTeachers } from '../hooks/useTeachers';
+import { useData } from '../contexts/DataContext';
 import OverlayShell from './OverlayShell';
 import { Z } from '../constants/overlays';
 import { Demo } from '../types';
@@ -34,7 +34,7 @@ export default function FilterDemosModal({
 }: FilterDemosModalProps) {
   
   const [localFilters, setLocalFilters] = useState<DemoFilters>(currentFilters);
-  const { teachers } = useTeachers();
+  const { teachers } = useData();
 
   // Combine teachers from DB with any existing teachers in demos
   const allTeacherNames = Array.from(new Set([

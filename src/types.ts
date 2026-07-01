@@ -134,6 +134,15 @@ export interface TeacherEnquiry {
   notes?: string;
 }
 
+export interface Teacher {
+  id: number | string;
+  teacher_name: string;
+  teacher_code: string;
+  type: string;
+  subject: string;
+  medium: string;
+}
+
 export interface Demo {
   id: string;
   leadId?: string;

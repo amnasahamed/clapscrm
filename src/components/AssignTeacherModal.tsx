@@ -4,7 +4,7 @@ import { Demo } from '../types';
 import OverlayShell from './OverlayShell';
 import { Z } from '../constants/overlays';
 
-import { useTeachers } from '../hooks/useTeachers';
+import { useData } from '../contexts/DataContext';
 
 interface AssignTeacherModalProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ export default function AssignTeacherModal({
   onAssign
 }: AssignTeacherModalProps) {
   const [selectedStaff, setSelectedStaff] = useState('');
-  const { teachers, loading } = useTeachers();
+  const { teachers } = useData();
 
   // Reset selected staff when modal opens with a new demo
   useEffect(() => {
@@ -76,10 +76,9 @@ export default function AssignTeacherModal({
             <select
               value={selectedStaff}
               onChange={e => setSelectedStaff(e.target.value)}
-              disabled={loading}
               className="w-full bg-[#f4f4f5] border border-transparent rounded-xl px-4 py-3.5 min-h-[48px] text-sm font-semibold outline-none focus:bg-white focus:border-[#18181b] appearance-none"
             >
-              <option value="">{loading ? 'Loading teachers...' : 'Unassigned (leave blank)'}</option>
+              <option value="">Unassigned (leave blank)</option>
               {teachers.map(t => (
                 <option key={t.id} value={t.teacher_name}>
                   {t.teacher_name}
