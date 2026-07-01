@@ -17,9 +17,15 @@ export default async function handler(req, res) {
     const [tables] = await pool.execute('SHOW TABLES');
     const [count] = await pool.execute('SELECT COUNT(*) as count FROM teachers');
     
+    const [userCount] = await pool.execute('SELECT COUNT(*) as count FROM users');
+    const [roles] = await pool.execute('SELECT * FROM roles');
+    const [masterCount] = await pool.execute('SELECT COUNT(*) as count FROM masters');
+
     return res.status(200).json({
-      tables,
-      teacher_count: count[0].count
+      teacher_table_count: count[0].count,
+      user_table_count: userCount[0].count,
+      master_table_count: masterCount[0].count,
+      roles: roles
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });

@@ -10,8 +10,13 @@ async function run() {
   });
 
   try {
-    const [rows] = await pool.execute('SELECT subject, COUNT(*) as count FROM teachers GROUP BY subject ORDER BY count DESC LIMIT 20');
-    console.log(JSON.stringify(rows, null, 2));
+    const [userCount] = await pool.execute('SELECT COUNT(*) as count FROM users');
+    console.log("Users:", userCount[0].count);
+    
+    // Also let's check roles
+    const [roles] = await pool.execute('SELECT * FROM roles');
+    console.log("Roles:", JSON.stringify(roles, null, 2));
+
   } catch (e) {
     console.error(e);
   } finally {
