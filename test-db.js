@@ -6,10 +6,11 @@ async function run() {
     user: 'mdnkewbg_claps_learn',
     password: 'gHUn3jXAeDkkcr3naJPj',
     database: 'mdnkewbg_claps_learn',
+    connectTimeout: 20000,
   });
 
   try {
-    const [rows] = await pool.execute('SELECT * FROM teachers LIMIT 5');
+    const [rows] = await pool.execute('SELECT subject, COUNT(*) as count FROM teachers GROUP BY subject ORDER BY count DESC LIMIT 20');
     console.log(JSON.stringify(rows, null, 2));
   } catch (e) {
     console.error(e);

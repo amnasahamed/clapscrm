@@ -32,10 +32,8 @@ export default async function handler(req, res) {
         teacher_code AS type, 
         medium
       FROM teachers 
-      WHERE subject LIKE '%Available%' 
-         OR subject LIKE '%Active%' 
-         OR LOWER(TRIM(subject)) = 'yes'
-         OR subject = '1'
+      WHERE TRIM(status) != '' 
+        AND subject NOT LIKE '%Stopped%'
       ORDER BY id ASC`
     );
 
