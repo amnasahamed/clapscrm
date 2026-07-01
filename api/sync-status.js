@@ -31,6 +31,10 @@ export default async function handler(req, res) {
     return res.status(200).json({ lastSync: rows[0]?.lastSync || null });
   } catch (error) {
     console.error('Error fetching sync status:', error);
-    return res.status(500).json({ message: 'Internal Server Error' });
+    return res.status(500).json({ 
+      message: 'Internal Server Error',
+      error: error.message,
+      code: error.code
+    });
   }
 }
