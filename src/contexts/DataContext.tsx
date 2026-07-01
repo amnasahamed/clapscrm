@@ -194,7 +194,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const fetchAndSyncTeachers = async () => {
     try {
-      const response = await fetch('/api/teachers');
+      const response = await fetch(`/api/teachers?t=${Date.now()}`);
       if (!response.ok) throw new Error('Failed to fetch teachers');
       const fetchedTeachers: Teacher[] = await response.json();
       
