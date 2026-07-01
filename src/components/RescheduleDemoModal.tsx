@@ -1,5 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
-import { X, Calendar, Clock, User, Video, GraduationCap } from 'lucide-react';
+import { X, Calendar, Clock, User, Video, GraduationCap, ChevronDown } from 'lucide-react';
+import { useTeachers } from '../hooks/useTeachers';
 import OverlayShell from './OverlayShell';
 import { Z } from '../constants/overlays';
 import { Demo } from '../types';
@@ -23,6 +24,7 @@ export default function RescheduleDemoModal({
   const [time, setTime] = useState('');
   const [teacher, setTeacher] = useState('');
   const [meetLink, setMeetLink] = useState('');
+  const { teachers, loading } = useTeachers();
 
   // Reset form when modal opens with a new demo
   useEffect(() => {
@@ -118,16 +120,25 @@ export default function RescheduleDemoModal({
           <div className="space-y-1.5 relative">
             <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Teacher</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                 <User size={16} className="text-[#a1a1aa]" />
               </div>
-              <input 
-                type="text"
+              <select
                 value={teacher}
                 onChange={e => setTeacher(e.target.value)}
-                placeholder="Enter teacher's name..."
-                className="w-full pl-10 pr-4 py-3 bg-[#f4f4f5] border border-transparent focus:bg-white focus:border-[#18181b] rounded-xl text-sm font-semibold transition-all outline-none"
-              />
+                disabled={loading}
+                className="w-full pl-10 pr-10 py-3 bg-[#f4f4f5] border border-transparent focus:bg-white focus:border-[#18181b] rounded-xl text-sm font-semibold transition-all outline-none appearance-none"
+              >
+                <option value="">{loading ? 'Loading teachers...' : 'Select a teacher (Optional)'}</option>
+                {teachers.map(t => (
+                  <option key={t.id} value={t.teacher_name}>
+                    {t.teacher_name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#a1a1aa]">
+                <ChevronDown size={16} />
+              </div>
             </div>
           </div>
 

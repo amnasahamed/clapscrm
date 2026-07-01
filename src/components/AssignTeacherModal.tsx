@@ -4,6 +4,8 @@ import { Demo } from '../types';
 import OverlayShell from './OverlayShell';
 import { Z } from '../constants/overlays';
 
+import { useTeachers } from '../hooks/useTeachers';
+
 interface AssignTeacherModalProps {
   isOpen: boolean;
   demo: Demo | null;
@@ -20,6 +22,7 @@ export default function AssignTeacherModal({
   onAssign
 }: AssignTeacherModalProps) {
   const [selectedStaff, setSelectedStaff] = useState('');
+  const { teachers, loading } = useTeachers();
 
   // Reset selected staff when modal opens with a new demo
   useEffect(() => {
@@ -70,13 +73,22 @@ export default function AssignTeacherModal({
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-[#a1a1aa] ml-1">Teacher Name</label>
           <div className="relative">
-            <input
-              type="text"
+            <select
               value={selectedStaff}
               onChange={e => setSelectedStaff(e.target.value)}
-              placeholder="Enter teacher's name (leave blank to unassign)..."
-              className="w-full bg-[#f4f4f5] border border-transparent rounded-xl px-4 py-3.5 min-h-[48px] text-sm font-semibold outline-none focus:bg-white focus:border-[#18181b]"
-            />
+              disabled={loading}
+              className="w-full bg-[#f4f4f5] border border-transparent rounded-xl px-4 py-3.5 min-h-[48px] text-sm font-semibold outline-none focus:bg-white focus:border-[#18181b] appearance-none"
+            >
+              <option value="">{loading ? 'Loading teachers...' : 'Unassigned (leave blank)'}</option>
+              {teachers.map(t => (
+                <option key={t.id} value={t.teacher_name}>
+                  {t.teacher_name}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#a1a1aa]">
+              <ChevronDown size={16} />
+            </div>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Calendar, User, GraduationCap, CheckCircle, SlidersHorizontal, BookOpen } from 'lucide-react';
+import { useTeachers } from '../hooks/useTeachers';
 import OverlayShell from './OverlayShell';
 import { Z } from '../constants/overlays';
 import { Demo } from '../types';
@@ -33,6 +34,13 @@ export default function FilterDemosModal({
 }: FilterDemosModalProps) {
   
   const [localFilters, setLocalFilters] = useState<DemoFilters>(currentFilters);
+  const { teachers } = useTeachers();
+
+  // Combine teachers from DB with any existing teachers in demos
+  const allTeacherNames = Array.from(new Set([
+    ...availableTeachers,
+    ...teachers.map(t => t.teacher_name)
+  ])).sort();
 
   useEffect(() => {
     if (isOpen) {
@@ -142,7 +150,7 @@ export default function FilterDemosModal({
                   className="w-full px-4 py-3 bg-[#f4f4f5] border border-transparent rounded-xl text-sm font-semibold text-[#18181b] focus:outline-none focus:border-[#18181b] focus:bg-white transition-all appearance-none"
                 >
                   <option value="ALL">All Teachers</option>
-                  {availableTeachers.map(t => (
+                  {allTeacherNames.map(t => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
