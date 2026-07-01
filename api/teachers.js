@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     }
 
     const [rows] = await pool.execute(
-      "SELECT id, teacher_name, teacher_code, type, subject, medium FROM teachers WHERE status = 'active' ORDER BY id ASC"
+      "SELECT id, teacher_name, teacher_code, type, subject, medium FROM teachers WHERE LOWER(TRIM(status)) = 'active' OR status = '1' OR status IS NULL ORDER BY id ASC"
     );
 
     // Set Edge Caching headers
