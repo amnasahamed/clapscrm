@@ -94,7 +94,7 @@ function MainLayout() {
     { path: '/joined', label: 'Joined', icon: GraduationCap, show: true },
     { path: '/settings', label: 'Settings', icon: LucideSettings, show: true },
     { path: '/admin', label: 'Admin', icon: ShieldCheck, show: hasPermission('admin_dashboard') },
-    { path: '/teachers', label: 'Teachers', icon: GraduationCap, show: hasPermission('manage_staff') },
+    { path: '/teachers', label: 'Teacher Enquiries', icon: GraduationCap, show: hasPermission('manage_staff') },
     { path: '/analytics', label: 'Insights', icon: BarChart3, show: hasPermission('view_analytics') },
   ].filter(item => item.show), [hasPermission]);
 
