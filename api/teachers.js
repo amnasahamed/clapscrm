@@ -26,15 +26,18 @@ export default async function handler(req, res) {
 
     const [rows] = await pool.execute(
       `SELECT 
-        id, 
-        status AS teacher_name, 
-        type AS teacher_code, 
-        teacher_code AS type, 
-        medium
-      FROM teachers 
-      WHERE TRIM(status) != '' 
-        AND subject NOT LIKE '%Stopped%'
-      ORDER BY id ASC`
+        MAX(id) AS id,
+        teacher_name,
+        teacher_code,
+        MAX(team) AS type,
+        MAX(teacher_dob) AS medium
+      FROM masters 
+      WHERE teacher_code IS NOT NULL 
+        AND teacher_code != ''
+        AND teacher_name IS NOT NULL
+        AND teacher_name != ''
+      GROUP BY teacher_code, teacher_name
+      ORDER BY teacher_name ASC`
     );
 
     // Set Edge Caching headers
