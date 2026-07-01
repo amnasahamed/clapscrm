@@ -10,13 +10,11 @@ async function run() {
   });
 
   try {
-    const [userCount] = await pool.execute('SELECT COUNT(*) as count FROM users');
-    console.log("Users:", userCount[0].count);
+    const [masterRows] = await pool.execute('SELECT * FROM masters LIMIT 2');
+    const [masterSingleRows] = await pool.execute('SELECT * FROM master LIMIT 2');
     
-    // Also let's check roles
-    const [roles] = await pool.execute('SELECT * FROM roles');
-    console.log("Roles:", JSON.stringify(roles, null, 2));
-
+    console.log("MASTERS:", JSON.stringify(masterRows, null, 2));
+    console.log("MASTER:", JSON.stringify(masterSingleRows, null, 2));
   } catch (e) {
     console.error(e);
   } finally {
