@@ -25,7 +25,18 @@ export default async function handler(req, res) {
     }
 
     const [rows] = await pool.execute(
-      "SELECT * FROM teachers LIMIT 10"
+      `SELECT 
+        id, 
+        status AS teacher_name, 
+        type AS teacher_code, 
+        teacher_code AS type, 
+        medium
+      FROM teachers 
+      WHERE subject LIKE '%Available%' 
+         OR subject LIKE '%Active%' 
+         OR LOWER(TRIM(subject)) = 'yes'
+         OR subject = '1'
+      ORDER BY id ASC`
     );
 
     // Set Edge Caching headers
