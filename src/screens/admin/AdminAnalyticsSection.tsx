@@ -215,7 +215,7 @@ export default function AdminAnalyticsSection() {
             </div>
           </div>
           <div className="min-h-[200px] mb-4">
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={200} minWidth={1} minHeight={1}>
               <BarChart data={sources.slice(0, 6)} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
                 <XAxis dataKey="source" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a' }} />
